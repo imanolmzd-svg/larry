@@ -11,7 +11,7 @@ export async function presignPutObject(params: {
   const cmd = new PutObjectCommand({
     Bucket: params.bucket,
     Key: params.key,
-    // RECOMENDADO: NO fijar ContentType aquí al principio para evitar mismatches
+    // RECOMMENDED: DO NOT set ContentType here to avoid mismatches
     // ContentType: params.contentType,
   });
 

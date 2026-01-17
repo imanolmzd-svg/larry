@@ -1,4 +1,4 @@
-.PHONY: dev infra db redis minio down reset logs
+.PHONY: dev infra db redis minio down reset logs migrate prisma-validate setup
 
 dev: infra
 	pnpm dev
@@ -23,3 +23,11 @@ reset:
 
 logs:
 	docker compose logs -f
+
+prisma-validate:
+	pnpm prisma validate
+
+migrate:
+	pnpm prisma migrate dev
+
+setup: infra prisma-validate migrate

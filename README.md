@@ -10,3 +10,13 @@ See /docs for product and technical documentation.
 Copy `apps/api/.env.example` to `apps/api/.env` and fill values.
 
 Required: DATABASE_URL, REDIS_URL, S3_ENDPOINT, S3_KEY, S3_SECRET, S3_BUCKET
+
+
+
+# Postgres setup
+The init scripts in /docker-entrypoint-initdb.d run only on first database initialization.
+If you already have a local Postgres volume, reset it once:
+
+```bash
+docker compose down -v
+docker compose up -d

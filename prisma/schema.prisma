@@ -1,0 +1,91 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider = "postgresql"
+  extensions = [pgvector(map: "vector")]
+}
+
+enum DocumentStatus {
+  CREATED
+  UPLOADED
+  PROCESSING
+  READY
+  FAILED
+}
+
+enum DocumentIngestionAttemptStatus {
+  INITIATED
+  PROCESSING
+  READY
+  FAILED
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String?  @unique
+  createdAt DateTime @default(now())
+
+  documents Document[]
+
+  @@index([createdAt])
+}
+
+model Document {
+  id         String         @id @default(cuid())
+  userId     String
+
+  filename   String?
+  storageKey String         @unique
+  mimeType   String?
+  size       BigInt?
+
+  status     DocumentStatus
+
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  attempts   DocumentIngestionAttempt[]
+  chunks     DocumentChunk[]
+
+  @@index([userId, status, createdAt])
+  @@index([status, createdAt])
+}
+
+model DocumentIngestionAttempt {
+  id           String                         @id @default(cuid())
+  documentId   String
+  status       DocumentIngestionAttemptStatus
+  progress     Int?
+  errorCode    String?
+  errorMessage String?
+  startedAt    DateTime?
+  finishedAt   DateTime?
+
+  document     Document                       @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  chunks       DocumentChunk[]
+
+  @@index([documentId, status])
+  @@index([status])
+}
+
+model DocumentChunk {
+  id         String   @id @default(cuid())
+  documentId String
+  attemptId  String
+  chunkIndex Int
+  content    String
+  embedding  Unsupported("vector") // pgvector
+  metadata   Json?
+
+  document   Document                 @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  attempt    DocumentIngestionAttempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+
+  @@unique([attemptId, chunkIndex])
+  @@index([documentId])
+}

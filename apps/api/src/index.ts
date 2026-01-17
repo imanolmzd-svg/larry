@@ -116,7 +116,7 @@ app.post("/documents/init", async (req, res) => {
   const documentId = crypto.randomUUID();
   const key = `uploads/${documentId}/${filename}`; // s3Key
 
-  // TODO: aquí crearías Document en DB con prisma si ya lo tienes
+  // TODO: create Document in DB with prisma if you have it
 
   const uploadUrl = await presignPutObject({
     bucket: process.env.S3_BUCKET!,
@@ -128,7 +128,7 @@ app.post("/documents/init", async (req, res) => {
   return res.json({
     documentId,
     uploadUrl,
-    key, // útil para debug / headObject luego
+    key, // useful for debug / headObject later
   });
 });
 

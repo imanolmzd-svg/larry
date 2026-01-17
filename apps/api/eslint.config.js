@@ -12,7 +12,7 @@ export default [
       },
     },
     rules: {
-      // ajusta si molesta algo concreto
+      // adjust if something specific bothers you
     },
   },
 ];
