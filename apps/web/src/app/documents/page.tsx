@@ -2,7 +2,7 @@
 
 import React, { useRef, useState } from "react";
 import { UploadCard } from "@/ui/documents/UploadCard";
-
+import { apiPost } from "@/shared/api";
 
 type UploadItem = {
   id: string;
@@ -11,6 +11,12 @@ type UploadItem = {
   status: "idle" | "uploading" | "success" | "error";
   error?: string;
 };
+
+type InitRes = {
+  documentId: string;
+  uploadUrl: string;
+};
+
 
 function formatBytes(n: number): string {
   if (n < 1024) return `${n} B`;
@@ -26,23 +32,63 @@ export default function DocumentsPage() {
 
   const onPickClick = () => inputRef.current?.click();
 
-  const onFilePicked = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const onFilePicked = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Allows choosing the same file
+    e.target.value = "";
+
     const id = crypto.randomUUID();
+
+    // 1) UI
     setItems((prev) => [
       {
         id,
         fileName: file.name,
         sizeBytes: file.size,
-        status: "idle",
+        status: "uploading",
       },
       ...prev,
     ]);
 
-    // permite volver a seleccionar el mismo archivo
-    e.target.value = "";
+    try {
+      // 2) INIT
+      const init = await apiPost<InitRes>("/documents/init", {
+        filename: file.name,
+        mimeType: file.type || "application/octet-stream",
+        sizeBytes: file.size,
+      });
+
+      // 3) PUT to S3/MinIO
+      const putRes = await fetch(init.uploadUrl, {
+        method: "PUT",
+        body: file,
+        // headers: { "Content-Type": file.type || "application/octet-stream" },
+      });
+
+      if (!putRes.ok) {
+        console.error("upload failed", putRes);
+        const text = await putRes.text().catch(() => "");
+        throw new Error(text || `upload failed (HTTP ${putRes.status})`);
+      }
+
+      // 4) COMPLETE
+      await apiPost("/documents/complete", { documentId: init.documentId });
+
+      // 5) UI: success
+      setItems((prev) =>
+        prev.map((x) => (x.id === id ? { ...x, status: "success" } : x))
+      );
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unknown error";
+
+      setItems((prev) =>
+        prev.map((x) =>
+          x.id === id ? { ...x, status: "error", error: message } : x
+        )
+      );
+    }
   };
 
   const remove = (id: string) =>
@@ -96,7 +142,11 @@ export default function DocumentsPage() {
                     {formatBytes(it.sizeBytes)} · {it.status}
                   </div>
                 </div>
-
+                {it.status === "error" && it.error && (
+                  <div style={{ fontSize: 13, color: "#b91c1c", marginTop: 4 }}>
+                    {it.error}
+                  </div>
+                )}
                 <button
                   onClick={() => remove(it.id)}
                   style={{

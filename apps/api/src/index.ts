@@ -3,6 +3,9 @@ import express from "express";
 import pg from "pg";
 import { Redis } from "ioredis";
 import { S3Client, ListBucketsCommand } from "@aws-sdk/client-s3";
+import cors from "cors";
+import crypto from "node:crypto";
+import { presignPutObject } from "./infra/s3/presignPut.js";
 
 const app = express();
 const PORT = 4000;
@@ -18,6 +21,13 @@ console.log("Env check:", {
 });
 
 app.use(express.json());
+
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    credentials: true,
+  })
+);
 
 app.get("/health", async (_req, res) => {
   const errors: string[] = [];
@@ -95,4 +105,40 @@ const server = app.listen(PORT, HOST, () => {
 server.on("error", (err) => {
   console.error("Server failed to start:", err);
   process.exit(1);
+});
+
+app.post("/documents/init", async (req, res) => {
+  const { filename, mimeType, sizeBytes } = req.body ?? {};
+  if (!filename || !sizeBytes) {
+    return res.status(400).json({ error: "missing fields" });
+  }
+
+  const documentId = crypto.randomUUID();
+  const key = `uploads/${documentId}/${filename}`; // s3Key
+
+  // TODO: aquí crearías Document en DB con prisma si ya lo tienes
+
+  const uploadUrl = await presignPutObject({
+    bucket: process.env.S3_BUCKET!,
+    key,
+    contentType: mimeType,
+  });
+
+  console.log("uploadUrl", uploadUrl);
+  return res.json({
+    documentId,
+    uploadUrl,
+    key, // útil para debug / headObject luego
+  });
+});
+
+app.post("/documents/complete", async (req, res) => {
+  console.log("documents/complete", req.body);
+  const { documentId } = req.body ?? {};
+  if (!documentId) {
+    return res.status(400).json({ error: "missing documentId" });
+  }
+
+  // TODO: complete document
+  return res.json({ success: true });
 });
