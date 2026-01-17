@@ -8,6 +8,8 @@
     "dev:api": "pnpm --filter @larry/api dev",
     "dev:worker": "pnpm --filter @larry/worker dev",
     "build": "pnpm -r build",
-    "clean": "pnpm -r clean"
+    "clean": "pnpm -r clean",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck"
   }
 }
