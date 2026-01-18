@@ -2,7 +2,7 @@
 
 import React, { useRef, useState, useEffect } from "react";
 import { UploadCard } from "./UploadCard";
-import { apiPost, getDocuments } from "@/shared/api";
+import { apiPost, getDocuments, deleteDocument } from "@/shared/api";
 import type { DocumentListItem } from "@/shared/types";
 
 type UploadItem = {
@@ -31,6 +31,7 @@ export function DocumentUpload() {
   const [items, setItems] = useState<UploadItem[]>([]);
   const [documents, setDocuments] = useState<DocumentListItem[]>([]);
   const [isLoadingDocs, setIsLoadingDocs] = useState(true);
+  const [deletingDocId, setDeletingDocId] = useState<string | null>(null);
 
   // Fetch documents on mount
   useEffect(() => {
@@ -118,6 +119,25 @@ export function DocumentUpload() {
 
   const remove = (id: string) =>
     setItems((prev) => prev.filter((x) => x.id !== id));
+
+  const handleDeleteDocument = async (docId: string, filename: string) => {
+    if (!confirm(`Are you sure you want to delete "${filename}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    setDeletingDocId(docId);
+    try {
+      await deleteDocument(docId);
+      // Refresh document list
+      const updatedDocs = await getDocuments();
+      setDocuments(updatedDocs);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unknown error";
+      alert(`Failed to delete document: ${message}`);
+    } finally {
+      setDeletingDocId(null);
+    }
+  };
 
   return (
     <div>
@@ -208,6 +228,7 @@ export function DocumentUpload() {
               <div
                 key={doc.id}
                 style={{
+                  position: "relative",
                   border: "1px solid #e5e7eb",
                   borderRadius: 12,
                   padding: 12,
@@ -215,6 +236,7 @@ export function DocumentUpload() {
                   justifyContent: "space-between",
                   gap: 12,
                   alignItems: "center",
+                  opacity: deletingDocId === doc.id ? 0.5 : 1,
                 }}
               >
                 <div style={{ minWidth: 0, flex: 1 }}>
@@ -235,6 +257,31 @@ export function DocumentUpload() {
                     {new Date(doc.createdAt).toLocaleDateString()} {new Date(doc.createdAt).toLocaleTimeString()}
                   </div>
                 </div>
+                <button
+                  onClick={() => handleDeleteDocument(doc.id, doc.filename)}
+                  disabled={deletingDocId === doc.id}
+                  style={{
+                    position: "absolute",
+                    top: 8,
+                    right: 8,
+                    width: 24,
+                    height: 24,
+                    borderRadius: 6,
+                    border: "1px solid #e5e7eb",
+                    background: "white",
+                    color: "#6b7280",
+                    fontSize: 16,
+                    fontWeight: 700,
+                    cursor: deletingDocId === doc.id ? "not-allowed" : "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: 0,
+                  }}
+                  title="Delete document"
+                >
+                  ×
+                </button>
               </div>
             ))}
           </div>

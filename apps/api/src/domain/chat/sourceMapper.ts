@@ -8,8 +8,8 @@ export function mapChunksToSources(chunks: RetrievedChunk[]): ChatSource[] {
   return chunks
     .filter(chunk => {
       const count = documentCounts.get(chunk.documentId) ?? 0;
-      if (count >= 2) {
-        return false; // Skip this chunk, already have 2 sources from this document
+      if (count >= 1) {
+        return false; // Skip this chunk, already have 1 source from this document
       }
       documentCounts.set(chunk.documentId, count + 1);
       return true;

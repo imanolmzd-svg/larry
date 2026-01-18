@@ -69,3 +69,31 @@ export async function askQuestion(question: string): Promise<ChatAskResponse> {
 export async function getDocuments(): Promise<DocumentListItem[]> {
   return apiGet<DocumentListItem[]>("/documents");
 }
+
+export async function deleteDocument(documentId: string): Promise<void> {
+  const token = localStorage.getItem("auth_token");
+
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/documents`, {
+    method: "DELETE",
+    headers,
+    body: JSON.stringify({ documentId }),
+  });
+
+  if (!res.ok) {
+    if (res.status === 401) {
+      localStorage.removeItem("auth_token");
+      localStorage.removeItem("auth_user");
+      window.location.href = "/login";
+    }
+    const text = await res.text().catch(() => "");
+    throw new Error(text || `HTTP ${res.status}`);
+  }
+}
