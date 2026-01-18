@@ -6,6 +6,8 @@
     "dev": "tsx watch src/index.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-sqs": "^3.971.0",
+    "@larry/db": "workspace:^",
     "zod": "^3"
   },
   "devDependencies": {

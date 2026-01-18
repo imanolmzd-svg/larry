@@ -9,8 +9,8 @@ export const sqs = new SQSClient({
   endpoint: SQS_ENDPOINT,
   // LocalStack does not require real credentials, but SDK wants something.
   credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID || "test",
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "test",
+    accessKeyId: process.env.SQS_ACCESS_KEY_ID || "test",
+    secretAccessKey: process.env.SQS_SECRET_ACCESS_KEY || "test",
   },
 });
 

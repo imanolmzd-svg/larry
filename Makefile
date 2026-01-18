@@ -42,4 +42,8 @@ install:
 generate:
 	pnpm prisma generate
 
+checks:
+	pnpm -r lint
+	pnpm -r typecheck
+
 setup: infra install generate prisma-validate migrate sqs-create
