@@ -1,10 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { useAuth } from "@/shared/auth";
 
 export default function LoginPage() {
+  const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
 
   const validateEmail = (email: string): boolean => {
@@ -16,7 +19,7 @@ export default function LoginPage() {
     return password.length >= 8;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const newErrors: { email?: string; password?: string } = {};
@@ -35,9 +38,16 @@ export default function LoginPage() {
 
     setErrors(newErrors);
 
-    // If no errors, the form is valid (but don't do anything yet)
+    // If no errors, attempt login
     if (Object.keys(newErrors).length === 0) {
-      console.log("Form is valid (no action yet)");
+      setIsLoading(true);
+      try {
+        await login(email, password);
+      } catch {
+        setErrors({ email: "Invalid credentials" });
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -116,19 +126,20 @@ export default function LoginPage() {
 
         <button
           type="submit"
+          disabled={isLoading}
           style={{
             padding: "10px 16px",
-            background: "#111827",
+            background: isLoading ? "#6b7280" : "#111827",
             color: "white",
             border: "none",
             borderRadius: 6,
             fontSize: 14,
             fontWeight: 600,
-            cursor: "pointer",
+            cursor: isLoading ? "not-allowed" : "pointer",
             marginTop: 8,
           }}
         >
-          Login
+          {isLoading ? "..." : "Login"}
         </button>
       </form>
     </main>

@@ -4,6 +4,8 @@ import cors from "cors";
 import { postDocumentsInit } from "./app/routes/documentsInit.js";
 import { postDocumentsComplete } from "./app/routes/documentsComplete.js";
 import { postChatAsk } from "./app/routes/chatAsk.js";
+import { postAuthLogin } from "./app/routes/authLogin.js";
+import { authMiddleware } from "./infra/middleware/auth.js";
 import { healthHandler } from "./app/health/health.controller.js";
 
 const app = express();
@@ -35,6 +37,14 @@ app.use(
 
 app.get("/health", healthHandler);
 
+// Public routes
+app.post("/auth/login", postAuthLogin);
+
+// Protected routes (require authentication)
+app.post("/documents/init", authMiddleware, postDocumentsInit);
+app.post("/documents/complete", authMiddleware, postDocumentsComplete);
+app.post("/chat/ask", authMiddleware, postChatAsk);
+
 const server = app.listen(PORT, HOST, () => {
   console.log(`API listening on http://${HOST}:${PORT}`);
 });
@@ -43,7 +53,3 @@ server.on("error", (err) => {
   console.error("Server failed to start:", err);
   process.exit(1);
 });
-
-app.post("/documents/init", postDocumentsInit);
-app.post("/documents/complete", postDocumentsComplete);
-app.post("/chat/ask", postChatAsk);

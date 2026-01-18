@@ -1,4 +1,5 @@
-import type { Request, Response } from "express";
+import type { Response } from "express";
+import type { AuthRequest } from "../../infra/middleware/auth.js";
 import { prisma } from "@larry/db";
 import { randomUUID } from "node:crypto";
 import { presignPutObject } from "../../infra/s3/presignPut.js";
@@ -11,9 +12,8 @@ function buildS3Key(userId: string, filename?: string) {
   return `users/${userId}/uploads/${randomUUID()}${ext}`;
 }
 
-export async function postDocumentsInit(req: Request, res: Response) {
-  // const userId = req.auth.userId as string;
-  const userId = "1"; // ##todo: add auth
+export async function postDocumentsInit(req: AuthRequest, res: Response) {
+  const userId = req.userId!; // Guaranteed by middleware
   const { filename, mimeType, sizeBytes } = req.body ?? {};
 
   const s3Key = buildS3Key(userId, filename);

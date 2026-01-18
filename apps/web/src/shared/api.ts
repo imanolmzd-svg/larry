@@ -4,13 +4,29 @@ export async function apiPost<TRes>(
   path: string,
   body: unknown
 ): Promise<TRes> {
+  const token = localStorage.getItem("auth_token");
+
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
   const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${path}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: JSON.stringify(body),
   });
 
   if (!res.ok) {
+    if (res.status === 401) {
+      // Token expired or invalid
+      localStorage.removeItem("auth_token");
+      localStorage.removeItem("auth_user");
+      window.location.href = "/login";
+    }
     const text = await res.text().catch(() => "");
     throw new Error(text || `HTTP ${res.status}`);
   }

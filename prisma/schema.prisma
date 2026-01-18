@@ -29,11 +29,13 @@ enum DocumentIngestionAttemptStatus {
 model User {
   id        String   @id @default(cuid())
   email     String?  @unique
+  password  String
   createdAt DateTime @default(now())
 
   documents Document[]
 
   @@index([createdAt])
+  @@index([email])
 }
 
 model Document {

@@ -1,19 +1,13 @@
-
-import type { Request, Response } from "express";
+import type { Response } from "express";
+import type { AuthRequest } from "../../infra/middleware/auth.js";
 import { prisma } from "@larry/db";
 import { S3_BUCKET_NAME } from "../../infra/s3/client.js";
 import { headObject } from "../../infra/s3/head.js";
 import { DocumentIngestionAttemptStatus, DocumentStatus } from "@larry/db/src/generated/prisma/enums.js";
 import { enqueueIngestionMessage } from "../../infra/sqs.js";
 
-
-
-
-
-export async function postDocumentsComplete(req: Request, res: Response) {
-
-  // const userId = req.auth.userId as string;
-  const userId = "1"; // ##todo: add auth
+export async function postDocumentsComplete(req: AuthRequest, res: Response) {
+  const userId = req.userId!; // Guaranteed by middleware
 
   const { documentId } = req.body ?? {};
 

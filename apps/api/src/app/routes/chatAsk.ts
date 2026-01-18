@@ -1,9 +1,9 @@
-import type { Request, Response } from "express";
+import type { Response } from "express";
+import type { AuthRequest } from "../../infra/middleware/auth.js";
 import { askQuestion } from "../../domain/chat/chatService.js";
 
-export async function postChatAsk(req: Request, res: Response) {
-  // Extract userId (hardcoded for MVP, matches other routes)
-  const userId = "1"; // ##todo: add auth
+export async function postChatAsk(req: AuthRequest, res: Response) {
+  const userId = req.userId!; // Guaranteed by middleware
 
   const { question } = req.body ?? {};
 
