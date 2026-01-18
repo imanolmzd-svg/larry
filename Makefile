@@ -1,4 +1,4 @@
-.PHONY: dev infra db redis minio down reset logs migrate prisma-validate setup
+.PHONY: dev infra db redis minio down reset logs migrate prisma-validate install generate setup sqs sqs-create
 
 dev: infra
 	pnpm dev
@@ -15,6 +15,12 @@ redis:
 minio:
 	docker compose up -d minio
 
+sqs:
+	docker compose up -d localstack
+
+sqs-create: sqs
+	docker compose exec localstack awslocal sqs create-queue --queue-name larry-ingest || true
+
 down:
 	docker compose down
 
@@ -30,4 +36,10 @@ prisma-validate:
 migrate:
 	pnpm prisma migrate dev
 
-setup: infra prisma-validate migrate
+install:
+	pnpm install
+
+generate:
+	pnpm prisma generate
+
+setup: infra install generate prisma-validate migrate sqs-create

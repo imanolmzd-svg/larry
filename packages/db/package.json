@@ -1,0 +1,15 @@
+{
+  "name": "@larry/db",
+  "version": "0.0.0",
+  "private": true,
+  "main": "src/prisma.ts",
+  "types": "src/prisma.ts",
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.2.0",
+    "@prisma/client": "^7.2.0",
+    "pg": "^8.17.1"
+  },
+  "devDependencies": {
+    "@types/pg": "^8"
+  }
+}

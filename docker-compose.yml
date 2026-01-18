@@ -18,6 +18,19 @@ services:
     volumes:
       - redisdata:/data
 
+  localstack:
+    image: localstack/localstack:3
+    environment:
+      - SERVICES=sqs
+      - AWS_DEFAULT_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - DEBUG=0
+    ports:
+      - "4566:4566"
+    volumes:
+      - localstack:/var/lib/localstack
+
   minio:
     image: minio/minio
     command: server /data --console-address ":9001"
@@ -63,3 +76,4 @@ volumes:
   pgdata:
   redisdata:
   miniodata:
+  localstack:

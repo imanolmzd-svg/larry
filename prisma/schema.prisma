@@ -3,6 +3,7 @@
 generator client {
   provider = "prisma-client"
   previewFeatures = ["postgresqlExtensions"]
+  output   = "../packages/db/src/generated/prisma"
 }
 
 datasource db {
