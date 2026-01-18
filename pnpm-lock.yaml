@@ -45,6 +45,9 @@ importers:
       ioredis:
         specifier: ^5
         version: 5.9.2
+      openai:
+        specifier: ^6.16.0
+        version: 6.16.0(zod@3.25.76)
       pg:
         specifier: ^8
         version: 8.17.1

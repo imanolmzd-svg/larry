@@ -7,6 +7,15 @@ type ChatSourcesProps = {
 export function ChatSources({ sources }: ChatSourcesProps) {
   if (sources.length === 0) return null;
 
+  // Limit to max 2 sources per document as defensive measure
+  const documentCounts = new Map<string, number>();
+  const limitedSources = sources.filter(source => {
+    const count = documentCounts.get(source.documentId) ?? 0;
+    if (count >= 2) return false;
+    documentCounts.set(source.documentId, count + 1);
+    return true;
+  });
+
   return (
     <div
       style={{
@@ -28,7 +37,7 @@ export function ChatSources({ sources }: ChatSourcesProps) {
         Sources
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        {sources.map((source, idx) => (
+        {limitedSources.map((source, idx) => (
           <div key={idx} style={{ fontSize: 13 }}>
             <div style={{ fontWeight: 600, color: "#374151" }}>
               {source.documentName || source.documentId}
