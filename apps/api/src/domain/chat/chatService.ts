@@ -7,6 +7,30 @@ import type { ChatResponse } from "./types.js";
 
 const NO_ANSWER_RESPONSE = "I couldn't find this information in your documents.";
 
+function isNoKnowledgeResponse(answer: string): boolean {
+  const lowerAnswer = answer.toLowerCase();
+  
+  // Common phrases indicating lack of knowledge
+  const noKnowledgePhrases = [
+    "don't know",
+    "do not know",
+    "i don't know",
+    "i do not know",
+    "cannot find",
+    "can't find",
+    "couldn't find",
+    "could not find",
+    "no information",
+    "not found",
+    "unable to find",
+    "no answer",
+    "cannot answer",
+    "can't answer"
+  ];
+  
+  return noKnowledgePhrases.some(phrase => lowerAnswer.includes(phrase));
+}
+
 export async function askQuestion(
   question: string,
   userId: string
@@ -50,8 +74,11 @@ export async function askQuestion(
 
   console.log(`[chat] Generated answer in ${llmTime}ms`);
 
-  // 6. Map sources
-  const sources = mapChunksToSources(chunks);
+  // 6. Check if answer indicates lack of knowledge
+  const indicatesNoKnowledge = isNoKnowledgeResponse(answer);
+
+  // 7. Map sources only if answer contains actual information
+  const sources = indicatesNoKnowledge ? [] : mapChunksToSources(chunks);
 
   return { answer, sources };
 }
