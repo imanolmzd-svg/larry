@@ -1,3 +1,5 @@
+import type { ChatAskResponse } from "./types";
+
 export async function apiPost<TRes>(
   path: string,
   body: unknown
@@ -14,4 +16,8 @@ export async function apiPost<TRes>(
   }
 
   return (await res.json()) as TRes;
+}
+
+export async function askQuestion(question: string): Promise<ChatAskResponse> {
+  return apiPost<ChatAskResponse>("/chat/ask", { question });
 }

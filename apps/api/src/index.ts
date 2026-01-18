@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 import { postDocumentsInit } from "./app/routes/documentsInit.js";
 import { postDocumentsComplete } from "./app/routes/documentsComplete.js";
+import { postChatAsk } from "./app/routes/chatAsk.js";
 import { healthHandler } from "./app/health/health.controller.js";
 
 const app = express();
@@ -45,3 +46,4 @@ server.on("error", (err) => {
 
 app.post("/documents/init", postDocumentsInit);
 app.post("/documents/complete", postDocumentsComplete);
+app.post("/chat/ask", postChatAsk);
