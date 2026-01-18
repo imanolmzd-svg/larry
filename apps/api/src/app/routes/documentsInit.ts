@@ -16,6 +16,23 @@ export async function postDocumentsInit(req: AuthRequest, res: Response) {
   const userId = req.userId!; // Guaranteed by middleware
   const { filename, mimeType, sizeBytes } = req.body ?? {};
 
+  // Validate filename is provided
+  if (!filename || typeof filename !== "string") {
+    return res.status(400).json({ error: "filename is required" });
+  }
+
+  // Check for duplicate filename
+  const existingDoc = await prisma.document.findFirst({
+    where: {
+      userId,
+      filename,
+    },
+  });
+
+  if (existingDoc) {
+    return res.status(409).json({ error: "A file with this name already exists" });
+  }
+
   const s3Key = buildS3Key(userId, filename);
 
   const document = await prisma.document.create({

@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 import { postDocumentsInit } from "./app/routes/documentsInit.js";
 import { postDocumentsComplete } from "./app/routes/documentsComplete.js";
+import { getDocuments } from "./app/routes/documentsGet.js";
 import { postChatAsk } from "./app/routes/chatAsk.js";
 import { postAuthLogin } from "./app/routes/authLogin.js";
 import { authMiddleware } from "./infra/middleware/auth.js";
@@ -41,6 +42,7 @@ app.get("/health", healthHandler);
 app.post("/auth/login", postAuthLogin);
 
 // Protected routes (require authentication)
+app.get("/documents", authMiddleware, getDocuments);
 app.post("/documents/init", authMiddleware, postDocumentsInit);
 app.post("/documents/complete", authMiddleware, postDocumentsComplete);
 app.post("/chat/ask", authMiddleware, postChatAsk);

@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { UploadCard } from "./UploadCard";
-import { apiPost } from "@/shared/api";
+import { apiPost, getDocuments } from "@/shared/api";
+import type { DocumentListItem } from "@/shared/types";
 
 type UploadItem = {
   id: string;
@@ -28,6 +29,20 @@ function formatBytes(n: number): string {
 export function DocumentUpload() {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [items, setItems] = useState<UploadItem[]>([]);
+  const [documents, setDocuments] = useState<DocumentListItem[]>([]);
+  const [isLoadingDocs, setIsLoadingDocs] = useState(true);
+
+  // Fetch documents on mount
+  useEffect(() => {
+    getDocuments()
+      .then(setDocuments)
+      .catch((err) => {
+        console.error("Failed to fetch documents:", err);
+      })
+      .finally(() => {
+        setIsLoadingDocs(false);
+      });
+  }, []);
 
   const onPickClick = () => inputRef.current?.click();
 
@@ -37,6 +52,13 @@ export function DocumentUpload() {
 
     // Allows choosing the same file
     e.target.value = "";
+
+    // Check for duplicate filename
+    const isDuplicate = documents.some((doc) => doc.filename === file.name);
+    if (isDuplicate) {
+      alert("A file with this name already exists. Please rename the file and try again.");
+      return;
+    }
 
     const id = crypto.randomUUID();
 
@@ -78,6 +100,11 @@ export function DocumentUpload() {
       setItems((prev) =>
         prev.map((x) => (x.id === id ? { ...x, status: "success" } : x))
       );
+
+      // 6) Refresh document list
+      getDocuments()
+        .then(setDocuments)
+        .catch((err) => console.error("Failed to refresh documents:", err));
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error";
 
@@ -104,16 +131,12 @@ export function DocumentUpload() {
         accept=".pdf,.txt,.csv,.xlsx,.xls"
       />
 
-      <section>
-        <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>
-          Recent uploads
-        </h2>
+      {items.length > 0 && (
+        <section style={{ marginBottom: 24 }}>
+          <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>
+            Recent uploads
+          </h2>
 
-        {items.length === 0 ? (
-          <div style={{ color: "#6b7280", fontSize: 14 }}>
-            You haven&apos;t uploaded any files yet.
-          </div>
-        ) : (
           <div style={{ display: "grid", gap: 8 }}>
             {items.map((it) => (
               <div
@@ -128,7 +151,7 @@ export function DocumentUpload() {
                   alignItems: "center",
                 }}
               >
-                <div style={{ minWidth: 0 }}>
+                <div style={{ minWidth: 0, flex: 1 }}>
                   <div
                     style={{
                       fontWeight: 600,
@@ -142,12 +165,12 @@ export function DocumentUpload() {
                   <div style={{ fontSize: 13, color: "#6b7280" }}>
                     {formatBytes(it.sizeBytes)} · {it.status}
                   </div>
+                  {it.status === "error" && it.error && (
+                    <div style={{ fontSize: 13, color: "#b91c1c", marginTop: 4 }}>
+                      {it.error}
+                    </div>
+                  )}
                 </div>
-                {it.status === "error" && it.error && (
-                  <div style={{ fontSize: 13, color: "#b91c1c", marginTop: 4 }}>
-                    {it.error}
-                  </div>
-                )}
                 <button
                   onClick={() => remove(it.id)}
                   style={{
@@ -155,12 +178,63 @@ export function DocumentUpload() {
                     borderRadius: 10,
                     border: "1px solid #e5e7eb",
                     background: "black",
+                    color: "white",
                     cursor: "pointer",
                     fontWeight: 600,
                   }}
                 >
                   Remove
                 </button>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <section>
+        <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>
+          Your documents
+        </h2>
+
+        {isLoadingDocs ? (
+          <div style={{ color: "#6b7280", fontSize: 14 }}>Loading...</div>
+        ) : documents.length === 0 ? (
+          <div style={{ color: "#6b7280", fontSize: 14 }}>
+            You haven&apos;t uploaded any files yet.
+          </div>
+        ) : (
+          <div style={{ display: "grid", gap: 8 }}>
+            {documents.map((doc) => (
+              <div
+                key={doc.id}
+                style={{
+                  border: "1px solid #e5e7eb",
+                  borderRadius: 12,
+                  padding: 12,
+                  display: "flex",
+                  justifyContent: "space-between",
+                  gap: 12,
+                  alignItems: "center",
+                }}
+              >
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div
+                    style={{
+                      fontWeight: 600,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {doc.filename}
+                  </div>
+                  <div style={{ fontSize: 13, color: "#6b7280" }}>
+                    {doc.size ? formatBytes(doc.size) : "Unknown size"} · {doc.status}
+                  </div>
+                  <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 2 }}>
+                    {new Date(doc.createdAt).toLocaleDateString()} {new Date(doc.createdAt).toLocaleTimeString()}
+                  </div>
+                </div>
               </div>
             ))}
           </div>

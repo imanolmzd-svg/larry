@@ -21,3 +21,11 @@ export type ChatAskResponse = {
   answer: string;
   sources?: ChatSource[];
 };
+
+export type DocumentListItem = {
+  id: string;
+  filename: string;
+  status: string;
+  size: number | null;
+  createdAt: string;
+};
