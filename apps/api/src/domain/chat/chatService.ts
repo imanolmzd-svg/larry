@@ -9,7 +9,7 @@ const NO_ANSWER_RESPONSE = "I couldn't find this information in your documents."
 
 function isNoKnowledgeResponse(answer: string): boolean {
   const lowerAnswer = answer.toLowerCase();
-  
+
   // Common phrases indicating lack of knowledge
   const noKnowledgePhrases = [
     "don't know",
@@ -27,7 +27,7 @@ function isNoKnowledgeResponse(answer: string): boolean {
     "cannot answer",
     "can't answer"
   ];
-  
+
   return noKnowledgePhrases.some(phrase => lowerAnswer.includes(phrase));
 }
 

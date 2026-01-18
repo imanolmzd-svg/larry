@@ -24,7 +24,7 @@ export function Navbar() {
       >
         Larry
       </Link>
-      
+
       <div style={{ display: "flex", gap: 24 }}>
         <Link
           href="/chat"
