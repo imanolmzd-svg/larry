@@ -8,6 +8,8 @@ import {
   DeleteMessageCommand,
   Message,
 } from "@aws-sdk/client-sqs";
+import { ingestJob } from "./ingestJob.js";
+
 
 type IngestMessageBody = {
   documentId: string;
@@ -98,10 +100,10 @@ async function handleMessage(msg: Message) {
   if (!receiptHandle) throw new Error("SQS message missing ReceiptHandle");
 
   const { documentId, attemptId } = parseBody(msg.Body);
-  console.log("HandleMessage: Parsed documentId:", documentId, "and attemptId:", attemptId);
+  console.log(`[worker] Processing doc=${documentId} attempt=${attemptId}`);
+
   // 1) DB transaction: state machine
-  await prisma.$transaction(async (tx) => {
-    console.log("transaction started");
+  const shouldProcess = await prisma.$transaction(async (tx) => {
     const attempt = await tx.documentIngestionAttempt.findUnique({
       where: { id: attemptId },
       select: {
@@ -118,47 +120,49 @@ async function handleMessage(msg: Message) {
     if (attempt.documentId !== documentId) {
       throw new Error(`Attempt ${attemptId} does not belong to document ${documentId}`);
     }
-    console.log("attempt belongs to document", documentId);
-    // Idempotency: if already terminal, do nothing
+
+    // Idempotency: if already terminal, skip processing
     if (
       attempt.status === DocumentIngestionAttemptStatus.READY ||
       attempt.status === DocumentIngestionAttemptStatus.FAILED
     ) {
-      console.log("attempt.status is terminal", attempt.status);
-      return;
+      return false;
     }
 
     // Only promote INITIATED -> PROCESSING
     if (attempt.status === DocumentIngestionAttemptStatus.INITIATED) {
-      console.log("attempt.status === DocumentIngestionAttemptStatus.INITIATED");
       await tx.documentIngestionAttempt.update({
         where: { id: attemptId },
         data: {
           status: DocumentIngestionAttemptStatus.PROCESSING,
           startedAt: attempt.startedAt ?? new Date(),
-          // optional: progress: 0
         },
       });
     }
 
     // Ensure Document status reflects processing
-    console.log("updating document status to PROCESSING", documentId);
     await tx.document.update({
       where: { id: documentId },
       data: {
         status: DocumentStatus.PROCESSING,
       },
     });
+
+    return true;
   });
 
+  if (shouldProcess) {
+    await ingestJob({ documentId, attemptId });
+  }
+
   // 2) Ack SQS only after DB commit
-  console.log("deleting message from SQS");
   await sqs.send(
     new DeleteMessageCommand({
       QueueUrl: SQS_QUEUE_URL,
       ReceiptHandle: receiptHandle,
     })
   );
+  console.log(`[worker] Message acknowledged`);
 }
 
 async function main() {
@@ -194,13 +198,17 @@ async function main() {
           }
         })();
 
+        const errMsg = err instanceof Error ? err.message : "Unknown error";
         if (body) {
+          console.error(`[worker] Failed doc=${body.documentId}: ${errMsg}`);
           await markFailedBestEffort({
             documentId: body.documentId,
             attemptId: body.attemptId,
             errorCode: "WORKER_STATE_UPDATE_FAILED",
-            errorMessage: err instanceof Error ? err.message : "Unknown error",
+            errorMessage: errMsg,
           });
+        } else {
+          console.error(`[worker] Failed to parse message: ${errMsg}`);
         }
       }
     }

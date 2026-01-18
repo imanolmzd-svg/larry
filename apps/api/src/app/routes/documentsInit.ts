@@ -5,9 +5,10 @@ import { presignPutObject } from "../../infra/s3/presignPut.js";
 import { S3_BUCKET_NAME } from "../../infra/s3/client.js";
 import { DocumentStatus } from "@larry/db/src/generated/prisma/enums.js";
 
-function buildS3Key(userId: string) {
+function buildS3Key(userId: string, filename?: string) {
   // Keep it opaque + stable; include userId for easy bucket browsing.
-  return `users/${userId}/uploads/${randomUUID()}`;
+  const ext = filename?.match(/\.[^.]+$/)?.[0] ?? "";
+  return `users/${userId}/uploads/${randomUUID()}${ext}`;
 }
 
 export async function postDocumentsInit(req: Request, res: Response) {
@@ -15,7 +16,7 @@ export async function postDocumentsInit(req: Request, res: Response) {
   const userId = "1"; // ##todo: add auth
   const { filename, mimeType, sizeBytes } = req.body ?? {};
 
-  const s3Key = buildS3Key(userId);
+  const s3Key = buildS3Key(userId, filename);
 
   const document = await prisma.document.create({
     data: {

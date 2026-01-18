@@ -497,6 +497,12 @@ export type NullableDateTimeFieldUpdateOperationsInput = {
   set?: Date | string | null
 }
 
+export type DocumentIngestionAttemptCreateNestedOneWithoutChunksInput = {
+  create?: Prisma.XOR<Prisma.DocumentIngestionAttemptCreateWithoutChunksInput, Prisma.DocumentIngestionAttemptUncheckedCreateWithoutChunksInput>
+  connectOrCreate?: Prisma.DocumentIngestionAttemptCreateOrConnectWithoutChunksInput
+  connect?: Prisma.DocumentIngestionAttemptWhereUniqueInput
+}
+
 export type DocumentIngestionAttemptUpdateOneRequiredWithoutChunksNestedInput = {
   create?: Prisma.XOR<Prisma.DocumentIngestionAttemptCreateWithoutChunksInput, Prisma.DocumentIngestionAttemptUncheckedCreateWithoutChunksInput>
   connectOrCreate?: Prisma.DocumentIngestionAttemptCreateOrConnectWithoutChunksInput

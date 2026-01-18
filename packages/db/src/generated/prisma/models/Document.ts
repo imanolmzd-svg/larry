@@ -536,6 +536,12 @@ export type DocumentUpdateOneRequiredWithoutAttemptsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.DocumentUpdateToOneWithWhereWithoutAttemptsInput, Prisma.DocumentUpdateWithoutAttemptsInput>, Prisma.DocumentUncheckedUpdateWithoutAttemptsInput>
 }
 
+export type DocumentCreateNestedOneWithoutChunksInput = {
+  create?: Prisma.XOR<Prisma.DocumentCreateWithoutChunksInput, Prisma.DocumentUncheckedCreateWithoutChunksInput>
+  connectOrCreate?: Prisma.DocumentCreateOrConnectWithoutChunksInput
+  connect?: Prisma.DocumentWhereUniqueInput
+}
+
 export type DocumentUpdateOneRequiredWithoutChunksNestedInput = {
   create?: Prisma.XOR<Prisma.DocumentCreateWithoutChunksInput, Prisma.DocumentUncheckedCreateWithoutChunksInput>
   connectOrCreate?: Prisma.DocumentCreateOrConnectWithoutChunksInput

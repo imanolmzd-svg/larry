@@ -653,6 +653,18 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
           args: Prisma.DocumentChunkFindManyArgs<ExtArgs>
           result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentChunkPayload>[]
         }
+        create: {
+          args: Prisma.DocumentChunkCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentChunkPayload>
+        }
+        createMany: {
+          args: Prisma.DocumentChunkCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.DocumentChunkCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentChunkPayload>[]
+        }
         delete: {
           args: Prisma.DocumentChunkDeleteArgs<ExtArgs>
           result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentChunkPayload>
@@ -672,6 +684,10 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         updateManyAndReturn: {
           args: Prisma.DocumentChunkUpdateManyAndReturnArgs<ExtArgs>
           result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentChunkPayload>[]
+        }
+        upsert: {
+          args: Prisma.DocumentChunkUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentChunkPayload>
         }
         aggregate: {
           args: Prisma.DocumentChunkAggregateArgs<ExtArgs>

@@ -81,7 +81,7 @@ model DocumentChunk {
   attemptId  String
   chunkIndex Int
   content    String
-  embedding  Unsupported("vector") // pgvector
+  embedding  Unsupported("vector")? // pgvector - nullable to allow Prisma create, set via raw SQL
   metadata   Json?
 
   document   Document                 @relation(fields: [documentId], references: [id], onDelete: Cascade)
