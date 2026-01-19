@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useRef, useState, useEffect } from "react";
-import { UploadCard } from "./UploadCard";
 import { apiPost, getDocuments, deleteDocument, getUserLimits } from "@/shared/api";
 import type { DocumentListItem, UserLimits } from "@/shared/types";
 
@@ -132,8 +131,6 @@ export function DocumentUpload({ onUploadSuccess }: DocumentUploadProps = {}) {
 
   return (
     <div>
-      <UploadCard onPick={onPickClick} disabled={isAtLimit || isUploading} />
-
       <input
         ref={inputRef}
         type="file"
@@ -142,27 +139,7 @@ export function DocumentUpload({ onUploadSuccess }: DocumentUploadProps = {}) {
         accept=".pdf,.txt,.csv,.xlsx,.xls"
       />
 
-      {isUploading && (
-        <div
-          style={{
-            marginBottom: 16,
-            padding: 12,
-            background: "var(--info-bg)",
-            border: "1px solid var(--info-border)",
-            borderRadius: 8,
-            fontSize: 14,
-            color: "var(--info-text)",
-          }}
-        >
-          Uploading document...
-        </div>
-      )}
-
       <section>
-        <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8, color: "var(--color-text-primary)" }}>
-          Your documents
-        </h2>
-
         {isLoadingDocs ? (
           <div style={{ color: "var(--color-text-secondary)", fontSize: 14 }}>Loading...</div>
         ) : documents.length === 0 ? (
@@ -171,14 +148,16 @@ export function DocumentUpload({ onUploadSuccess }: DocumentUploadProps = {}) {
           </div>
         ) : (
           <div style={{
+            position: "relative",
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
+            gridTemplateColumns: "repeat(auto-fill, 100px)",
             gap: 12,
             padding: 16,
+            paddingBottom: 60,
             border: "1px solid var(--card-border)",
             borderRadius: 12,
             background: "var(--card-bg)",
-            minHeight: 120
+            minHeight: 180
           }}>
             {documents.map((doc) => {
               const capitalizeStatus = (status: string) => {
@@ -195,12 +174,12 @@ export function DocumentUpload({ onUploadSuccess }: DocumentUploadProps = {}) {
                     padding: 12,
                     display: "flex",
                     flexDirection: "column",
-                    alignItems: "center",
+                    alignItems: "flex-start",
                     gap: 8,
                     opacity: deletingDocId === doc.id ? 0.5 : 1,
                     background: "var(--card-bg)",
-                    minHeight: 110,
-                    textAlign: "center"
+                    height: 110,
+                    textAlign: "left"
                   }}
                 >
                   <button
@@ -233,51 +212,54 @@ export function DocumentUpload({ onUploadSuccess }: DocumentUploadProps = {}) {
                     style={{
                       fontWeight: 600,
                       fontSize: 12,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
                       width: "100%",
                       color: "var(--color-text-primary)",
-                      marginTop: 8,
+                      marginTop: 4,
                       flex: 1,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center"
+                      display: "-webkit-box",
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: "vertical",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      wordBreak: "break-all",
+                      textAlign: "left"
                     }}
                     title={doc.filename}
                   >
-                    {doc.filename}
+                    {doc.filename.slice(0, 20)}
                   </div>
 
                   {doc.status === 'READY' && (
                     <div style={{
-                      fontSize: 12,
+                      fontSize: 10,
                       fontWeight: 400,
                       color: "white",
                       background: "#16a34a",
-                      padding: "4px 12px",
-                      borderRadius: 6,
-                      marginTop: "auto"
+                      padding: "3px 10px",
+                      borderRadius: 5,
+                      marginTop: "auto",
+                      marginBottom: -2
                     }}>
                       {capitalizeStatus(doc.status)}
                     </div>
                   )}
                   {doc.status === 'PROCESSING' && (
                     <div style={{
-                      fontSize: 12,
+                      fontSize: 10,
                       fontWeight: 400,
                       color: "white",
                       background: "var(--color-warm-gray)",
-                      padding: "4px 12px",
-                      borderRadius: 6,
+                      padding: "3px 10px",
+                      borderRadius: 5,
                       display: "flex",
                       alignItems: "center",
-                      gap: 6,
-                      marginTop: "auto"
+                      gap: 4,
+                      marginTop: "auto",
+                      marginBottom: -2
                     }}>
                       {capitalizeStatus(doc.status)}
                       <span style={{
-                        fontSize: 14,
+                        fontSize: 12,
                         animation: "spin 1s linear infinite",
                         display: "inline-block"
                       }}>
@@ -287,42 +269,82 @@ export function DocumentUpload({ onUploadSuccess }: DocumentUploadProps = {}) {
                   )}
                   {doc.status === 'FAILED' && (
                     <div style={{
-                      fontSize: 12,
+                      fontSize: 10,
                       fontWeight: 400,
                       color: "white",
                       background: "#dc2626",
-                      padding: "4px 12px",
-                      borderRadius: 6,
+                      padding: "3px 10px",
+                      borderRadius: 5,
                       display: "flex",
                       alignItems: "center",
-                      gap: 6,
-                      marginTop: "auto"
+                      gap: 4,
+                      marginTop: "auto",
+                      marginBottom: -2
                     }}>
-                      {capitalizeStatus(doc.status)} <span style={{ fontSize: 14 }}>!</span>
+                      {capitalizeStatus(doc.status)} <span style={{ fontSize: 12 }}>!</span>
                     </div>
                   )}
                   {(doc.status === 'CREATED' || doc.status === 'UPLOADED') && (
                     <div style={{
-                      fontSize: 12,
+                      fontSize: 10,
                       fontWeight: 400,
                       color: "white",
                       background: "var(--color-warm-gray)",
-                      padding: "4px 12px",
-                      borderRadius: 6,
+                      padding: "3px 10px",
+                      borderRadius: 5,
                       display: "flex",
                       alignItems: "center",
-                      gap: 6,
-                      marginTop: "auto"
+                      gap: 4,
+                      marginTop: "auto",
+                      marginBottom: -2
                     }}>
-                      {capitalizeStatus(doc.status)} <span style={{ fontSize: 14 }}>○</span>
+                      {capitalizeStatus(doc.status)} <span style={{ fontSize: 12 }}>○</span>
                     </div>
                   )}
                 </div>
               );
             })}
+
+            <button
+              onClick={onPickClick}
+              disabled={isAtLimit || isUploading}
+              style={{
+                position: "absolute",
+                bottom: 12,
+                right: 12,
+                padding: "8px 16px",
+                borderRadius: 10,
+                border: "none",
+                background: isAtLimit || isUploading ? "var(--button-disabled)" : "var(--button-primary)",
+                color: "white",
+                cursor: isAtLimit || isUploading ? "not-allowed" : "pointer",
+                fontWeight: 600,
+                fontSize: 14,
+                opacity: isAtLimit || isUploading ? 0.6 : 1,
+                width: "auto",
+              }}
+            >
+              Upload new file
+            </button>
           </div>
         )}
       </section>
+
+      {isUploading && (
+        <div
+          style={{
+            marginTop: 16,
+            padding: 12,
+            background: "var(--info-bg)",
+            border: "1px solid var(--info-border)",
+            borderRadius: 8,
+            fontSize: 14,
+            color: "var(--info-text)",
+          }}
+        >
+          Uploading document...
+        </div>
+      )}
     </div>
   );
 }

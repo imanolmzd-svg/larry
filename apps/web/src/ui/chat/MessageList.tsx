@@ -19,12 +19,31 @@ export function MessageList({ messages, loading }: MessageListProps) {
       <div
         style={{
           padding: 40,
-          textAlign: "center",
-          color: "var(--color-text-secondary)",
-          fontSize: 14,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 16,
         }}
       >
-        Ask something about your documents.
+        <img
+          src="/larry-icon.png"
+          alt="Larry"
+          style={{
+            width: 48,
+            height: 48,
+            objectFit: "contain",
+            opacity: 0.8
+          }}
+        />
+        <div
+          style={{
+            color: "var(--color-text-secondary)",
+            fontSize: 16,
+            fontWeight: 500,
+          }}
+        >
+          Larry is ready to answer your questions
+        </div>
       </div>
     );
   }

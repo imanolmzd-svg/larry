@@ -44,7 +44,7 @@ export default function ChatPage() {
   return (
     <main style={{ maxWidth: 720, margin: "40px auto", padding: 16 }}>
       <h1 style={{
-        fontSize: 28,
+        fontSize: 22,
         fontWeight: 700,
         marginBottom: 16,
         color: "var(--color-text-primary)",
@@ -52,29 +52,50 @@ export default function ChatPage() {
         alignItems: "center",
         gap: 12
       }}>
-        Documents
+        Ask Larry
         {limits && (
           <span style={{
-            fontSize: 20,
+            fontSize: 18,
             fontWeight: 600,
-            color: limits.documents.remaining <= 0
+            color: limits.questions.remaining <= 0
               ? "var(--error-text)"
-              : limits.documents.remaining <= 2
+              : limits.questions.remaining <= 2
                 ? "var(--warning-text)"
                 : "var(--success-text)"
           }}>
-            {limits.documents.used}/{limits.documents.limit}
+            {limits.questions.used}/{limits.questions.limit}
           </span>
         )}
       </h1>
-
-      <DocumentUpload onUploadSuccess={refreshLimits} />
+      <ChatWindow limits={limits} onQuestionAsked={refreshLimits} />
 
       <div style={{ marginTop: 40 }}>
-        <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 16, color: "var(--color-text-primary)" }}>
-          Ask Larry
-        </h2>
-        <ChatWindow />
+        <h1 style={{
+          fontSize: 22,
+          fontWeight: 700,
+          marginBottom: 16,
+          color: "var(--color-text-primary)",
+          display: "flex",
+          alignItems: "center",
+          gap: 12
+        }}>
+          Documents
+          {limits && (
+            <span style={{
+              fontSize: 18,
+              fontWeight: 600,
+              color: limits.documents.remaining <= 0
+                ? "var(--error-text)"
+                : limits.documents.remaining <= 2
+                  ? "var(--warning-text)"
+                  : "var(--success-text)"
+            }}>
+              {limits.documents.used}/{limits.documents.limit}
+            </span>
+          )}
+        </h1>
+
+        <DocumentUpload onUploadSuccess={refreshLimits} />
       </div>
     </main>
   );

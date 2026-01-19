@@ -1,25 +1,20 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import type { ChatMessage, UserLimits } from "@/shared/types";
-import { askQuestion, getUserLimits } from "@/shared/api";
+import { askQuestion } from "@/shared/api";
 import { MessageList } from "./MessageList";
 import { ChatInput } from "./ChatInput";
 
-export function ChatWindow() {
+type ChatWindowProps = {
+  limits: UserLimits | null;
+  onQuestionAsked?: () => void;
+};
+
+export function ChatWindow({ limits, onQuestionAsked }: ChatWindowProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [limits, setLimits] = useState<UserLimits | null>(null);
-
-  // Fetch limits on mount
-  useEffect(() => {
-    getUserLimits()
-      .then(setLimits)
-      .catch((err) => {
-        console.error("Failed to fetch limits:", err);
-      });
-  }, []);
 
   const handleSend = async (text: string) => {
     const userMessage: ChatMessage = {
@@ -45,9 +40,7 @@ export function ChatWindow() {
       setMessages((prev) => [...prev, assistantMessage]);
 
       // Refresh limits after successful question
-      getUserLimits()
-        .then(setLimits)
-        .catch((err) => console.error("Failed to refresh limits:", err));
+      onQuestionAsked?.();
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : "Unknown error";
       setError(errorMsg);
@@ -65,31 +58,6 @@ export function ChatWindow() {
 
   return (
     <div>
-      {limits && (
-        <div
-          style={{
-            marginBottom: 16,
-            padding: 12,
-            background: isAtLimit ? "var(--error-bg)" : isNearLimit ? "var(--warning-bg)" : "var(--success-bg)",
-            border: `1px solid ${isAtLimit ? "var(--error-border)" : isNearLimit ? "var(--warning-border)" : "var(--success-border)"}`,
-            borderRadius: 8,
-          }}
-        >
-          <div style={{ fontSize: 14, fontWeight: 600, color: isAtLimit ? "var(--error-text)" : isNearLimit ? "var(--warning-text)" : "var(--success-text)" }}>
-            Questions: {limits.questions.used}/{limits.questions.limit}
-          </div>
-          {isAtLimit && (
-            <div style={{ fontSize: 13, color: "var(--error-text)", marginTop: 4 }}>
-              Limit reached. You cannot ask more questions.
-            </div>
-          )}
-          {isNearLimit && (
-            <div style={{ fontSize: 13, color: "var(--warning-text)", marginTop: 4 }}>
-              You are approaching your question limit.
-            </div>
-          )}
-        </div>
-      )}
       <div
         style={{
           border: "1px solid var(--card-border)",
@@ -130,7 +98,7 @@ export function ChatWindow() {
           </div>
         )}
         <MessageList messages={messages} loading={loading} />
-        <div style={{ padding: 16, borderTop: "1px solid var(--card-border)" }}>
+        <div style={{ padding: 16 }}>
           <ChatInput onSend={handleSend} disabled={loading || isAtLimit} />
         </div>
       </div>
