@@ -54,7 +54,8 @@ export function ChatWindow({ limits, onQuestionAsked }: ChatWindowProps) {
   };
 
   const isAtLimit = limits ? limits.questions.remaining <= 0 : false;
-  const isNearLimit = limits ? limits.questions.remaining > 0 && limits.questions.remaining <= 2 : false;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _isNearLimit = limits ? limits.questions.remaining > 0 && limits.questions.remaining <= 2 : false;
 
   return (
     <div>

@@ -15,7 +15,9 @@ type DocumentUploadProps = {
   onUploadSuccess?: () => void;
 };
 
-function formatBytes(n: number): string {
+// Utility for formatting bytes (kept for future use)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function _formatBytes(n: number): string {
   if (n < 1024) return `${n} B`;
   const kb = n / 1024;
   if (kb < 1024) return `${kb.toFixed(1)} KB`;
@@ -190,7 +192,8 @@ export function DocumentUpload({ onUploadSuccess }: DocumentUploadProps = {}) {
   };
 
   const isAtLimit = limits && limits.documents.remaining <= 0;
-  const isNearLimit = limits && limits.documents.remaining > 0 && limits.documents.remaining <= 2;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _isNearLimit = limits && limits.documents.remaining > 0 && limits.documents.remaining <= 2;
 
   return (
     <div>

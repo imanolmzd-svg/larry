@@ -1,6 +1,7 @@
 import { Server as HttpServer } from "http";
 import { Server as SocketIOServer, Socket } from "socket.io";
-import { Redis } from "ioredis";
+import type { Redis } from "ioredis";
+import { getRedisSubscriber, safeRedisSubscribe, safeRedisUnsubscribe } from "@larry/infra";
 import { verifyToken } from "../../domain/auth/authService.js";
 import { getRedisChannel, validateDocumentStatusEvent } from "@larry/shared";
 import { CORS_ORIGIN } from "../../config/constants.js";
@@ -22,19 +23,20 @@ export function initWebSocketServer(httpServer: HttpServer): SocketIOServer {
     },
   });
 
-  // Initialize Redis subscriber if URL is available
-  if (ENV.REDIS_URL) {
-    redisSubscriber = new Redis(ENV.REDIS_URL);
+  // Initialize Redis subscriber lazily (serverless-optimized)
+  redisSubscriber = getRedisSubscriber(ENV.REDIS_URL);
 
+  if (redisSubscriber) {
     redisSubscriber.on("message", (channel, message) => {
       handleRedisMessage(channel, message);
     });
 
+    // Error handler already set up in getRedisSubscriber, but add specific one for ws
     redisSubscriber.on("error", (err) => {
-      console.error("[ws] Redis subscriber error:", err);
+      console.error("[ws] Redis subscriber error:", err.message);
     });
 
-    console.log("[ws] Redis subscriber initialized");
+    console.log("[ws] Redis subscriber initialized (lazy connect)");
   } else {
     console.log("[ws] No REDIS_URL, WebSocket updates disabled");
   }
@@ -94,9 +96,11 @@ async function subscribeToUserChannel(userId: string) {
   const channel = getRedisChannel(userId);
 
   if (!subscribedChannels.has(channel)) {
-    await redisSubscriber.subscribe(channel);
-    subscribedChannels.add(channel);
-    console.log(`[ws] Subscribed to channel: ${channel}`);
+    const success = await safeRedisSubscribe(redisSubscriber, channel);
+    if (success) {
+      subscribedChannels.add(channel);
+      console.log(`[ws] Subscribed to channel: ${channel}`);
+    }
   }
 }
 
@@ -108,9 +112,11 @@ async function unsubscribeFromUserChannel(userId: string) {
   // Only unsubscribe if no more connections for this user
   if (!userConnections.has(userId) || userConnections.get(userId)!.size === 0) {
     if (subscribedChannels.has(channel)) {
-      await redisSubscriber.unsubscribe(channel);
-      subscribedChannels.delete(channel);
-      console.log(`[ws] Unsubscribed from channel: ${channel}`);
+      const success = await safeRedisUnsubscribe(redisSubscriber, channel);
+      if (success) {
+        subscribedChannels.delete(channel);
+        console.log(`[ws] Unsubscribed from channel: ${channel}`);
+      }
     }
   }
 }
@@ -125,10 +131,8 @@ function handleDisconnect(socketId: string, userId: string) {
     userSockets.delete(socketId);
     if (userSockets.size === 0) {
       userConnections.delete(userId);
-      // Async unsubscribe (fire and forget)
-      unsubscribeFromUserChannel(userId).catch((err) => {
-        console.error("[ws] Error unsubscribing:", err);
-      });
+      // Async unsubscribe (fire and forget) - safe wrapper handles errors
+      void unsubscribeFromUserChannel(userId);
     }
   }
 }

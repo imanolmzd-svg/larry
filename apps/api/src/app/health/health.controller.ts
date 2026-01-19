@@ -1,10 +1,15 @@
 import { Request, Response } from "express";
 import pg from "pg";
-import { Redis } from "ioredis";
 import { HeadBucketCommand } from "@aws-sdk/client-s3";
 import { ENV } from "../../config/env.js";
 import { s3, S3_BUCKET_NAME } from "../../infra/s3/client.js";
 
+/**
+ * Health check endpoint.
+ * Checks Postgres and S3 connectivity.
+ * NOTE: Redis is intentionally NOT checked here to avoid connection issues on Lambda.
+ * Redis failures are handled gracefully by the application (returns null/false).
+ */
 export async function healthHandler(_req: Request, res: Response) {
   const errors: string[] = [];
 
@@ -16,19 +21,6 @@ export async function healthHandler(_req: Request, res: Response) {
     await client.end();
   } catch (err) {
     errors.push(`postgres: ${err instanceof Error ? err.message : "unknown error"}`);
-  }
-
-  // Check Redis
-  if (!ENV.REDIS_URL) {
-    errors.push("redis: REDIS_URL is not set");
-  } else {
-    try {
-      const redis = new Redis(ENV.REDIS_URL);
-      await redis.ping();
-      redis.disconnect();
-    } catch (err) {
-      errors.push(`redis: ${err instanceof Error ? err.message : "unknown error"}`);
-    }
   }
 
   // Check S3 - works for both MinIO and AWS S3

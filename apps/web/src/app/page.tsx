@@ -3,6 +3,7 @@
 import { Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { useAuth } from "@/shared/auth";
 
 type ContentBlockProps = {
@@ -168,9 +169,11 @@ function HomeContent() {
               flexShrink: 0,
             }}
           >
-            <img
+            <Image
               src="/larry-searching-2.png"
               alt="Larry searching through documents"
+              width={400}
+              height={400}
               style={{
                 maxWidth: "100%",
                 height: "auto",

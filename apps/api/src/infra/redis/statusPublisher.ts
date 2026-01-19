@@ -1,4 +1,4 @@
-import { Redis } from "ioredis";
+import { getRedisPublisher, safeRedisPublish } from "@larry/infra";
 import {
   createDocumentStatusEvent,
   getRedisChannel,
@@ -6,23 +6,17 @@ import {
 } from "@larry/shared";
 import { ENV } from "../../config/env.js";
 
-let redis: Redis | null = null;
-
-function getRedis(): Redis | null {
-  if (!ENV.REDIS_URL) return null;
-  if (!redis) {
-    redis = new Redis(ENV.REDIS_URL);
-  }
-  return redis;
-}
-
+/**
+ * Publishes a document status change to Redis for real-time updates.
+ * Uses lazy client creation and safe error handling (never throws).
+ */
 export async function publishDocumentStatus(
   userId: string,
   documentId: string,
   status: DocumentStatusType,
   attemptId?: string
 ): Promise<void> {
-  const client = getRedis();
+  const client = getRedisPublisher(ENV.REDIS_URL);
   if (!client) {
     console.log(`[redis] No REDIS_URL, skipping publish status=${status} doc=${documentId}`);
     return;
@@ -32,6 +26,10 @@ export async function publishDocumentStatus(
   const channel = getRedisChannel(userId);
   const msg = JSON.stringify(event);
 
-  await client.publish(channel, msg);
-  console.log(`[redis] Published status=${status} to channel=${channel}`);
+  const success = await safeRedisPublish(client, channel, msg);
+  if (success) {
+    console.log(`[redis] Published status=${status} to channel=${channel}`);
+  } else {
+    console.log(`[redis] Failed to publish status=${status} to channel=${channel}`);
+  }
 }
