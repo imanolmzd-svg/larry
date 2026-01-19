@@ -7,14 +7,8 @@ type ChatSourcesProps = {
 export function ChatSources({ sources }: ChatSourcesProps) {
   if (sources.length === 0) return null;
 
-  // Limit to max 1 source per document as defensive measure
-  const documentCounts = new Map<string, number>();
-  const limitedSources = sources.filter(source => {
-    const count = documentCounts.get(source.documentId) ?? 0;
-    if (count >= 1) return false;
-    documentCounts.set(source.documentId, count + 1);
-    return true;
-  });
+  // Limit to max 1 source total as defensive measure
+  const limitedSources = sources.slice(0, 1);
 
   return (
     <div

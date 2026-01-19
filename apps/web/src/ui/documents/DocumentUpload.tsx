@@ -5,14 +5,6 @@ import { UploadCard } from "./UploadCard";
 import { apiPost, getDocuments, deleteDocument, getUserLimits } from "@/shared/api";
 import type { DocumentListItem, UserLimits } from "@/shared/types";
 
-type UploadItem = {
-  id: string;
-  fileName: string;
-  sizeBytes: number;
-  status: "idle" | "uploading" | "success" | "error";
-  error?: string;
-};
-
 type InitRes = {
   documentId: string;
   uploadUrl: string;
@@ -28,11 +20,11 @@ function formatBytes(n: number): string {
 
 export function DocumentUpload() {
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const [items, setItems] = useState<UploadItem[]>([]);
   const [documents, setDocuments] = useState<DocumentListItem[]>([]);
   const [isLoadingDocs, setIsLoadingDocs] = useState(true);
   const [deletingDocId, setDeletingDocId] = useState<string | null>(null);
   const [limits, setLimits] = useState<UserLimits | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   // Fetch documents and limits on mount
   useEffect(() => {
@@ -71,28 +63,17 @@ export function DocumentUpload() {
       return;
     }
 
-    const id = crypto.randomUUID();
-
-    // 1) UI
-    setItems((prev) => [
-      {
-        id,
-        fileName: file.name,
-        sizeBytes: file.size,
-        status: "uploading",
-      },
-      ...prev,
-    ]);
+    setIsUploading(true);
 
     try {
-      // 2) INIT
+      // 1) INIT
       const init = await apiPost<InitRes>("/documents/init", {
         filename: file.name,
         mimeType: file.type || "application/octet-stream",
         sizeBytes: file.size,
       });
 
-      // 3) PUT to S3/MinIO
+      // 2) PUT to S3/MinIO
       const putRes = await fetch(init.uploadUrl, {
         method: "PUT",
         body: file,
@@ -104,15 +85,10 @@ export function DocumentUpload() {
         throw new Error(text || `upload failed (HTTP ${putRes.status})`);
       }
 
-      // 4) COMPLETE
+      // 3) COMPLETE
       await apiPost("/documents/complete", { documentId: init.documentId });
 
-      // 5) UI: success
-      setItems((prev) =>
-        prev.map((x) => (x.id === id ? { ...x, status: "success" } : x))
-      );
-
-      // 6) Refresh document list and limits
+      // 4) Refresh document list and limits
       Promise.all([getDocuments(), getUserLimits()])
         .then(([docs, lims]) => {
           setDocuments(docs);
@@ -121,17 +97,11 @@ export function DocumentUpload() {
         .catch((err) => console.error("Failed to refresh data:", err));
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error";
-
-      setItems((prev) =>
-        prev.map((x) =>
-          x.id === id ? { ...x, status: "error", error: message } : x
-        )
-      );
+      alert(`Upload failed: ${message}`);
+    } finally {
+      setIsUploading(false);
     }
   };
-
-  const remove = (id: string) =>
-    setItems((prev) => prev.filter((x) => x.id !== id));
 
   const handleDeleteDocument = async (docId: string, filename: string) => {
     if (!confirm(`Are you sure you want to delete "${filename}"? This action cannot be undone.`)) {
@@ -182,7 +152,7 @@ export function DocumentUpload() {
           )}
         </div>
       )}
-      <UploadCard onPick={onPickClick} disabled={isAtLimit} />
+      <UploadCard onPick={onPickClick} disabled={isAtLimit || isUploading} />
 
       <input
         ref={inputRef}
@@ -192,64 +162,20 @@ export function DocumentUpload() {
         accept=".pdf,.txt,.csv,.xlsx,.xls"
       />
 
-      {items.length > 0 && (
-        <section style={{ marginBottom: 24 }}>
-          <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>
-            Recent uploads
-          </h2>
-
-          <div style={{ display: "grid", gap: 8 }}>
-            {items.map((it) => (
-              <div
-                key={it.id}
-                style={{
-                  border: "1px solid #e5e7eb",
-                  borderRadius: 12,
-                  padding: 12,
-                  display: "flex",
-                  justifyContent: "space-between",
-                  gap: 12,
-                  alignItems: "center",
-                }}
-              >
-                <div style={{ minWidth: 0, flex: 1 }}>
-                  <div
-                    style={{
-                      fontWeight: 600,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {it.fileName}
-                  </div>
-                  <div style={{ fontSize: 13, color: "#6b7280" }}>
-                    {formatBytes(it.sizeBytes)} · {it.status}
-                  </div>
-                  {it.status === "error" && it.error && (
-                    <div style={{ fontSize: 13, color: "#b91c1c", marginTop: 4 }}>
-                      {it.error}
-                    </div>
-                  )}
-                </div>
-                <button
-                  onClick={() => remove(it.id)}
-                  style={{
-                    padding: "8px 10px",
-                    borderRadius: 10,
-                    border: "1px solid #e5e7eb",
-                    background: "black",
-                    color: "white",
-                    cursor: "pointer",
-                    fontWeight: 600,
-                  }}
-                >
-                  Remove
-                </button>
-              </div>
-            ))}
-          </div>
-        </section>
+      {isUploading && (
+        <div
+          style={{
+            marginBottom: 16,
+            padding: 12,
+            background: "#f0f9ff",
+            border: "1px solid #bae6fd",
+            borderRadius: 8,
+            fontSize: 14,
+            color: "#0369a1",
+          }}
+        >
+          Uploading document...
+        </div>
       )}
 
       <section>
