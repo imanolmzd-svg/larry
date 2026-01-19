@@ -32,6 +32,9 @@ model User {
   password  String
   createdAt DateTime @default(now())
 
+  documentsUploaded Int @default(0)
+  questionsAsked    Int @default(0)
+
   documents Document[]
 
   @@index([createdAt])

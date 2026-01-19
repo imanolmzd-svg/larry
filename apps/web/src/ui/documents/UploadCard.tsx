@@ -2,9 +2,10 @@
 
 type UploadCardProps = {
   onPick: () => void;
+  disabled?: boolean;
 };
 
-export function UploadCard({ onPick }: UploadCardProps) {
+export function UploadCard({ onPick, disabled = false }: UploadCardProps) {
   return (
     <div
       style={{
@@ -27,13 +28,16 @@ export function UploadCard({ onPick }: UploadCardProps) {
 
       <button
         onClick={onPick}
+        disabled={disabled}
         style={{
           padding: "10px 12px",
           borderRadius: 10,
           border: "1px solid #e5e7eb",
-          background: "black",
-          cursor: "pointer",
+          background: disabled ? "#9ca3af" : "black",
+          color: "white",
+          cursor: disabled ? "not-allowed" : "pointer",
           fontWeight: 600,
+          opacity: disabled ? 0.6 : 1,
         }}
       >
         Choose file

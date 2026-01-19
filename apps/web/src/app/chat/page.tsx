@@ -34,7 +34,7 @@ export default function ChatPage() {
 
       <div style={{ marginTop: 40 }}>
         <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 16 }}>
-          Ask Questions
+          Ask Larry
         </h2>
         <ChatWindow />
       </div>

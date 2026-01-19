@@ -29,3 +29,16 @@ export type DocumentListItem = {
   size: number | null;
   createdAt: string;
 };
+
+export type UserLimits = {
+  documents: {
+    used: number;
+    limit: number;
+    remaining: number;
+  };
+  questions: {
+    used: number;
+    limit: number;
+    remaining: number;
+  };
+};

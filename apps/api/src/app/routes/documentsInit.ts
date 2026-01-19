@@ -16,6 +16,22 @@ export async function postDocumentsInit(req: AuthRequest, res: Response) {
   const userId = req.userId!; // Guaranteed by middleware
   const { filename, mimeType, sizeBytes } = req.body ?? {};
 
+  // Check user limits
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { documentsUploaded: true },
+  });
+
+  if (!user) {
+    return res.status(404).json({ error: "User not found" });
+  }
+
+  if (user.documentsUploaded >= 10) {
+    return res.status(403).json({
+      error: "Document limit reached. You have uploaded 10/10 documents.",
+    });
+  }
+
   // Validate filename is provided
   if (!filename || typeof filename !== "string") {
     return res.status(400).json({ error: "filename is required" });
@@ -45,6 +61,12 @@ export async function postDocumentsInit(req: AuthRequest, res: Response) {
       storageKey: s3Key,
     },
     select: { id: true, storageKey: true },
+  });
+
+  // Increment documents uploaded counter
+  await prisma.user.update({
+    where: { id: userId },
+    data: { documentsUploaded: { increment: 1 } },
   });
 
   const uploadUrl = await presignPutObject({

@@ -2,8 +2,8 @@
 
 import React, { useRef, useState, useEffect } from "react";
 import { UploadCard } from "./UploadCard";
-import { apiPost, getDocuments, deleteDocument } from "@/shared/api";
-import type { DocumentListItem } from "@/shared/types";
+import { apiPost, getDocuments, deleteDocument, getUserLimits } from "@/shared/api";
+import type { DocumentListItem, UserLimits } from "@/shared/types";
 
 type UploadItem = {
   id: string;
@@ -32,13 +32,17 @@ export function DocumentUpload() {
   const [documents, setDocuments] = useState<DocumentListItem[]>([]);
   const [isLoadingDocs, setIsLoadingDocs] = useState(true);
   const [deletingDocId, setDeletingDocId] = useState<string | null>(null);
+  const [limits, setLimits] = useState<UserLimits | null>(null);
 
-  // Fetch documents on mount
+  // Fetch documents and limits on mount
   useEffect(() => {
-    getDocuments()
-      .then(setDocuments)
+    Promise.all([getDocuments(), getUserLimits()])
+      .then(([docs, lims]) => {
+        setDocuments(docs);
+        setLimits(lims);
+      })
       .catch((err) => {
-        console.error("Failed to fetch documents:", err);
+        console.error("Failed to fetch data:", err);
       })
       .finally(() => {
         setIsLoadingDocs(false);
@@ -53,6 +57,12 @@ export function DocumentUpload() {
 
     // Allows choosing the same file
     e.target.value = "";
+
+    // Check limit
+    if (limits && limits.documents.remaining <= 0) {
+      alert("Document limit reached. You have uploaded 10/10 documents.");
+      return;
+    }
 
     // Check for duplicate filename
     const isDuplicate = documents.some((doc) => doc.filename === file.name);
@@ -102,10 +112,13 @@ export function DocumentUpload() {
         prev.map((x) => (x.id === id ? { ...x, status: "success" } : x))
       );
 
-      // 6) Refresh document list
-      getDocuments()
-        .then(setDocuments)
-        .catch((err) => console.error("Failed to refresh documents:", err));
+      // 6) Refresh document list and limits
+      Promise.all([getDocuments(), getUserLimits()])
+        .then(([docs, lims]) => {
+          setDocuments(docs);
+          setLimits(lims);
+        })
+        .catch((err) => console.error("Failed to refresh data:", err));
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error";
 
@@ -128,7 +141,7 @@ export function DocumentUpload() {
     setDeletingDocId(docId);
     try {
       await deleteDocument(docId);
-      // Refresh document list
+      // Refresh document list (note: counter does not decrement)
       const updatedDocs = await getDocuments();
       setDocuments(updatedDocs);
     } catch (err) {
@@ -139,9 +152,37 @@ export function DocumentUpload() {
     }
   };
 
+  const isAtLimit = limits && limits.documents.remaining <= 0;
+  const isNearLimit = limits && limits.documents.remaining > 0 && limits.documents.remaining <= 2;
+
   return (
     <div>
-      <UploadCard onPick={onPickClick} />
+      {limits && (
+        <div
+          style={{
+            marginBottom: 16,
+            padding: 12,
+            background: isAtLimit ? "#fef2f2" : isNearLimit ? "#fef3c7" : "#f0fdf4",
+            border: `1px solid ${isAtLimit ? "#fecaca" : isNearLimit ? "#fde68a" : "#bbf7d0"}`,
+            borderRadius: 8,
+          }}
+        >
+          <div style={{ fontSize: 14, fontWeight: 600, color: isAtLimit ? "#b91c1c" : isNearLimit ? "#92400e" : "#166534" }}>
+            Documents: {limits.documents.used}/{limits.documents.limit}
+          </div>
+          {isAtLimit && (
+            <div style={{ fontSize: 13, color: "#b91c1c", marginTop: 4 }}>
+              Limit reached. You cannot upload more documents.
+            </div>
+          )}
+          {isNearLimit && (
+            <div style={{ fontSize: 13, color: "#92400e", marginTop: 4 }}>
+              You are approaching your document limit.
+            </div>
+          )}
+        </div>
+      )}
+      <UploadCard onPick={onPickClick} disabled={isAtLimit} />
 
       <input
         ref={inputRef}

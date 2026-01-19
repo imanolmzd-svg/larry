@@ -1,4 +1,4 @@
-import type { ChatAskResponse, DocumentListItem } from "./types";
+import type { ChatAskResponse, DocumentListItem, UserLimits } from "./types";
 
 export async function apiGet<TRes>(path: string): Promise<TRes> {
   const token = localStorage.getItem("auth_token");
@@ -96,4 +96,8 @@ export async function deleteDocument(documentId: string): Promise<void> {
     const text = await res.text().catch(() => "");
     throw new Error(text || `HTTP ${res.status}`);
   }
+}
+
+export async function getUserLimits(): Promise<UserLimits> {
+  return apiGet<UserLimits>("/user/limits");
 }
