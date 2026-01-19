@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useAuth } from "@/shared/auth";
 
 export default function LoginPage() {
@@ -53,7 +54,27 @@ export default function LoginPage() {
 
   return (
     <main style={{ maxWidth: 420, margin: "40px auto", padding: 16 }}>
-      <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 24, color: "var(--color-text-primary)" }}>Login</h1>
+      <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 8, color: "var(--color-text-primary)" }}>Login</h1>
+
+      <p style={{
+        fontSize: 13,
+        color: "var(--color-text-secondary)",
+        marginBottom: 24,
+        lineHeight: 1.5
+      }}>
+        Access is restricted to specific accounts. To learn more, visit{" "}
+        <Link
+          href="/about"
+          style={{
+            color: "#2563eb",
+            textDecoration: "none",
+            fontWeight: 500
+          }}
+        >
+          About this project
+        </Link>
+        .
+      </p>
 
       <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         <div>
