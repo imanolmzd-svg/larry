@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "predev": "pnpm --filter @larry/db generate",
     "dev": "tsx watch src/index.ts",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit"
