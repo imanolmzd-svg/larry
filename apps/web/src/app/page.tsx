@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/shared/auth";
@@ -92,7 +92,7 @@ function ContentBlock({ title, subtitle, content, videoOnLeft, cta, withBackgrou
   );
 }
 
-export default function Home() {
+function HomeContent() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -302,5 +302,13 @@ export default function Home() {
         />
       </main>
     </>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<div style={{ padding: "80px 16px", textAlign: "center" }}>Loading...</div>}>
+      <HomeContent />
+    </Suspense>
   );
 }
