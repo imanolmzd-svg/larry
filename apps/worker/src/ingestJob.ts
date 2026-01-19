@@ -1,10 +1,11 @@
 // apps/worker/src/ingestJob.ts
 import { prisma } from "@larry/db";
-import { DocumentIngestionAttemptStatus, DocumentStatus } from "@larry/db/src/generated/prisma/enums.js";import { downloadToBuffer } from "./lib/s3.js";
+import { DocumentIngestionAttemptStatus, DocumentStatus } from "@larry/db/src/generated/prisma/enums.js";
+import { downloadToBuffer } from "./lib/s3.js";
 import { extractPdfTextWithPageMap } from "./lib/pdf.js";
 import { chunkTextByTokens } from "./lib/chunking.js";
 import { embedMany } from "./lib/embeddings.js";
-import { publishProgress } from "./lib/redisProgress.js";
+import { publishDocumentStatus } from "./lib/redisProgress.js";
 
 
 type Params = {
@@ -47,13 +48,10 @@ export async function ingestJob({ documentId, attemptId }: Params): Promise<void
   }
 
   console.log(`[ingest] Starting file=${doc.filename ?? "unknown"}`);
-  await publishProgress(doc.userId, { documentId, attemptId, stage: "downloading", progress: 10 });
 
   // 2) Download from S3
   const pdfBuffer = await downloadToBuffer(doc.storageKey);
   console.log(`[ingest] Downloaded ${Math.round(pdfBuffer.length / 1024)}KB`);
-
-  await publishProgress(doc.userId, { documentId, attemptId, stage: "parsing", progress: 25 });
 
   // 3) Parse PDF to text + page map (for citations)
   const { fullText, pageSpans } = await extractPdfTextWithPageMap(pdfBuffer);
@@ -62,8 +60,6 @@ export async function ingestJob({ documentId, attemptId }: Params): Promise<void
   if (fullText.length === 0) {
     throw new Error("PDF contains no extractable text");
   }
-
-  await publishProgress(doc.userId, { documentId, attemptId, stage: "chunking", progress: 45 });
 
   // 4) Chunk
   const chunks = chunkTextByTokens(fullText, {
@@ -79,8 +75,6 @@ export async function ingestJob({ documentId, attemptId }: Params): Promise<void
   });
   console.log(`[ingest] Created ${chunks.length} chunks`);
 
-  await publishProgress(doc.userId, { documentId, attemptId, stage: "embedding", progress: 65 });
-
   // 5) Embeddings
   const vectors = await embedMany(chunks.map((c) => c.content));
   console.log(`[ingest] Generated ${vectors.length} embeddings`);
@@ -88,8 +82,6 @@ export async function ingestJob({ documentId, attemptId }: Params): Promise<void
   if (vectors.length !== chunks.length) {
     throw new Error(`Embedding count mismatch: vectors=${vectors.length} chunks=${chunks.length}`);
   }
-
-  await publishProgress(doc.userId, { documentId, attemptId, stage: "persisting", progress: 85 });
 
   // 6) Persist (transaction)
   await prisma.$transaction(async (tx) => {
@@ -143,7 +135,8 @@ export async function ingestJob({ documentId, attemptId }: Params): Promise<void
   });
   console.log(`[ingest] Persisted ${chunks.length} chunks to DB`);
 
-  await publishProgress(doc.userId, { documentId, attemptId, stage: "ready", progress: 100 });
+  // Publish READY status to Redis for real-time updates
+  await publishDocumentStatus(doc.userId, documentId, "READY", attemptId);
   console.log(`[ingest] Complete doc=${documentId}`);
 }
 

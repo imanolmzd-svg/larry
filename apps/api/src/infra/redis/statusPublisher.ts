@@ -7,7 +7,15 @@ import {
 
 const REDIS_URL = process.env.REDIS_URL;
 
-const redis = REDIS_URL ? new Redis(REDIS_URL) : null;
+let redis: Redis | null = null;
+
+function getRedis(): Redis | null {
+  if (!REDIS_URL) return null;
+  if (!redis) {
+    redis = new Redis(REDIS_URL);
+  }
+  return redis;
+}
 
 export async function publishDocumentStatus(
   userId: string,
@@ -15,7 +23,8 @@ export async function publishDocumentStatus(
   status: DocumentStatusType,
   attemptId?: string
 ): Promise<void> {
-  if (!redis) {
+  const client = getRedis();
+  if (!client) {
     console.log(`[redis] No REDIS_URL, skipping publish status=${status} doc=${documentId}`);
     return;
   }
@@ -24,6 +33,6 @@ export async function publishDocumentStatus(
   const channel = getRedisChannel(userId);
   const msg = JSON.stringify(event);
 
-  await redis.publish(channel, msg);
+  await client.publish(channel, msg);
   console.log(`[redis] Published status=${status} to channel=${channel}`);
 }

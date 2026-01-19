@@ -5,6 +5,7 @@ import { S3_BUCKET_NAME } from "../../infra/s3/client.js";
 import { headObject } from "../../infra/s3/head.js";
 import { DocumentIngestionAttemptStatus, DocumentStatus } from "@larry/db/src/generated/prisma/enums.js";
 import { enqueueIngestionMessage } from "../../infra/sqs.js";
+import { publishDocumentStatus } from "../../infra/redis/statusPublisher.js";
 
 export async function postDocumentsComplete(req: AuthRequest, res: Response) {
   const userId = req.userId!; // Guaranteed by middleware
@@ -55,6 +56,9 @@ export async function postDocumentsComplete(req: AuthRequest, res: Response) {
 
     return { attemptId: attempt.id };
   });
+
+  // Publish PROCESSING status to Redis for real-time updates
+  await publishDocumentStatus(String(userId), doc.id, "PROCESSING", attemptId);
 
   // Enqueue after commit (simple + good enough for MVP).
   // If you later want stronger guarantees: Outbox pattern.

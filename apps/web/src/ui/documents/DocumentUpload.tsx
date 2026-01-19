@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useCallback } from "react";
 import { apiPost, getDocuments, deleteDocument, getUserLimits } from "@/shared/api";
 import type { DocumentListItem, UserLimits } from "@/shared/types";
+import { connectWebSocket, subscribeToStatusChanges, isConnected, type DocumentStatusEvent } from "@/shared/ws";
 
 type InitRes = {
   documentId: string;
@@ -24,12 +25,42 @@ function formatBytes(n: number): string {
 export function DocumentUpload({ onUploadSuccess }: DocumentUploadProps = {}) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [documents, setDocuments] = useState<DocumentListItem[]>([]);
+  const documentsRef = useRef<DocumentListItem[]>([]);
   const [isLoadingDocs, setIsLoadingDocs] = useState(true);
   const [deletingDocId, setDeletingDocId] = useState<string | null>(null);
   const [limits, setLimits] = useState<UserLimits | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
-  // Fetch documents and limits on mount
+  // Keep documentsRef in sync with documents state
+  useEffect(() => {
+    documentsRef.current = documents;
+  }, [documents]);
+
+  // Handle WebSocket status updates
+  const handleStatusChange = useCallback((event: DocumentStatusEvent) => {
+    setDocuments((prevDocs) => {
+      // Find the document in our list
+      const docIndex = prevDocs.findIndex((d) => d.id === event.documentId);
+
+      if (docIndex === -1) {
+        // Document not in list - refetch to get it
+        getDocuments()
+          .then(setDocuments)
+          .catch((err) => console.error("Failed to refetch documents:", err));
+        return prevDocs;
+      }
+
+      // Update the document status in place
+      const updatedDocs = [...prevDocs];
+      updatedDocs[docIndex] = {
+        ...updatedDocs[docIndex],
+        status: event.status,
+      };
+      return updatedDocs;
+    });
+  }, []);
+
+  // Fetch documents and limits on mount, and connect WebSocket
   useEffect(() => {
     Promise.all([getDocuments(), getUserLimits()])
       .then(([docs, lims]) => {
@@ -42,7 +73,38 @@ export function DocumentUpload({ onUploadSuccess }: DocumentUploadProps = {}) {
       .finally(() => {
         setIsLoadingDocs(false);
       });
-  }, []);
+
+    // Connect WebSocket and subscribe to status changes
+    const token = localStorage.getItem("auth_token");
+    let unsubscribe: (() => void) | undefined;
+    if (token) {
+      connectWebSocket(token);
+      unsubscribe = subscribeToStatusChanges(handleStatusChange);
+    }
+
+    // Fallback: Poll for updates every 3 seconds if any document is PROCESSING
+    // Only poll if WebSocket is not connected
+    const pollInterval = setInterval(async () => {
+      if (isConnected()) return; // Skip polling if WebSocket is working
+
+      const hasProcessing = documentsRef.current.some(
+        (d) => d.status === "PROCESSING" || d.status === "CREATED" || d.status === "UPLOADED"
+      );
+      if (hasProcessing) {
+        try {
+          const docs = await getDocuments();
+          setDocuments(docs);
+        } catch (err) {
+          console.error("Polling failed:", err);
+        }
+      }
+    }, 3000);
+
+    return () => {
+      unsubscribe?.();
+      clearInterval(pollInterval);
+    };
+  }, [handleStatusChange]);
 
   const onPickClick = () => inputRef.current?.click();
 
@@ -245,21 +307,19 @@ export function DocumentUpload({ onUploadSuccess }: DocumentUploadProps = {}) {
                   )}
                   {doc.status === 'PROCESSING' && (
                     <div style={{
-                      fontSize: 10,
+                      fontSize: 14,
                       fontWeight: 400,
                       color: "white",
                       background: "var(--color-warm-gray)",
-                      padding: "3px 10px",
+                      padding: "4px 10px",
                       borderRadius: 5,
                       display: "flex",
                       alignItems: "center",
-                      gap: 4,
+                      justifyContent: "center",
                       marginTop: "auto",
                       marginBottom: -2
                     }}>
-                      {capitalizeStatus(doc.status)}
                       <span style={{
-                        fontSize: 12,
                         animation: "spin 1s linear infinite",
                         display: "inline-block"
                       }}>

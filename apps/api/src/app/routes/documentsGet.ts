@@ -7,11 +7,18 @@ export async function getDocuments(req: AuthRequest, res: Response) {
   const userId = req.userId!; // Guaranteed by middleware
 
   try {
+    // Return all documents regardless of status for real-time UI updates
     const documents = await prisma.document.findMany({
       where: {
         userId,
         status: {
-          in: [DocumentStatus.READY, DocumentStatus.PROCESSING],
+          in: [
+            DocumentStatus.CREATED,
+            DocumentStatus.UPLOADED,
+            DocumentStatus.PROCESSING,
+            DocumentStatus.READY,
+            DocumentStatus.FAILED,
+          ],
         },
       },
       select: {

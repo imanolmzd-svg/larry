@@ -1,5 +1,6 @@
 import "dotenv/config";
 import express from "express";
+import { createServer } from "http";
 import cors from "cors";
 import { postDocumentsInit } from "./app/routes/documentsInit.js";
 import { postDocumentsComplete } from "./app/routes/documentsComplete.js";
@@ -10,6 +11,7 @@ import { postChatAsk } from "./app/routes/chatAsk.js";
 import { postAuthLogin } from "./app/routes/authLogin.js";
 import { authMiddleware } from "./infra/middleware/auth.js";
 import { healthHandler } from "./app/health/health.controller.js";
+import { initWebSocketServer } from "./infra/ws/wsServer.js";
 
 const app = express();
 const PORT = 4000;
@@ -51,11 +53,15 @@ app.delete("/documents", authMiddleware, deleteDocument);
 app.get("/user/limits", authMiddleware, getUserLimits);
 app.post("/chat/ask", authMiddleware, postChatAsk);
 
-const server = app.listen(PORT, HOST, () => {
+// Create HTTP server and attach WebSocket
+const httpServer = createServer(app);
+initWebSocketServer(httpServer);
+
+httpServer.listen(PORT, HOST, () => {
   console.log(`API listening on http://${HOST}:${PORT}`);
 });
 
-server.on("error", (err) => {
+httpServer.on("error", (err) => {
   console.error("Server failed to start:", err);
   process.exit(1);
 });

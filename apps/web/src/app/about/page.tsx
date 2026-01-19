@@ -90,8 +90,8 @@ export default function AboutPage() {
           AI Tools
         </h2>
         <ul style={{ fontSize: 16, color: "var(--color-text-secondary)", lineHeight: 1.8, marginLeft: 20 }}>
-          <li>ChatGPT for Architecture, Design and Copywriting</li>
-          <li>Claude on Cursor for detailed features</li>
+          <li>ChatGPT - Architecture, Design and Copywriting</li>
+          <li>Claude on Cursor - Detailed features</li>
         </ul>
       </section>
 
@@ -105,7 +105,7 @@ export default function AboutPage() {
           <li>Google Login</li>
           <li>Support for .xlsx, .csv, .docx files</li>
           <li>PDF reader when file clicked, with source highlighted</li>
-          <li>Improve styling</li>
+          <li>Improved styling and copywriting</li>
         </ul>
       </section>
 

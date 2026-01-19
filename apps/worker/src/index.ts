@@ -9,6 +9,7 @@ import {
   Message,
 } from "@aws-sdk/client-sqs";
 import { ingestJob } from "./ingestJob.js";
+import { publishDocumentStatus } from "./lib/redisProgress.js";
 
 
 type IngestMessageBody = {
@@ -62,16 +63,22 @@ async function markFailedBestEffort(params: {
   const { documentId, attemptId, errorCode, errorMessage } = params;
 
   try {
-    await prisma.$transaction(async (tx) => {
+    const userId = await prisma.$transaction(async (tx) => {
       // Only fail if attempt exists and is not READY already
       const attempt = await tx.documentIngestionAttempt.findUnique({
         where: { id: attemptId },
         select: { id: true, documentId: true, status: true },
       });
 
-      if (!attempt) return;
-      if (attempt.documentId !== documentId) return;
-      if (attempt.status === DocumentIngestionAttemptStatus.READY) return;
+      if (!attempt) return null;
+      if (attempt.documentId !== documentId) return null;
+      if (attempt.status === DocumentIngestionAttemptStatus.READY) return null;
+
+      // Get userId for publishing
+      const doc = await tx.document.findUnique({
+        where: { id: documentId },
+        select: { userId: true },
+      });
 
       await tx.documentIngestionAttempt.update({
         where: { id: attemptId },
@@ -89,7 +96,14 @@ async function markFailedBestEffort(params: {
           status: DocumentStatus.FAILED,
         },
       });
+
+      return doc?.userId ?? null;
     });
+
+    // Publish FAILED status to Redis for real-time updates
+    if (userId) {
+      await publishDocumentStatus(userId, documentId, "FAILED", attemptId);
+    }
   } catch {
     // swallow: best effort only
   }
@@ -103,7 +117,7 @@ async function handleMessage(msg: Message) {
   console.log(`[worker] Processing doc=${documentId} attempt=${attemptId}`);
 
   // 1) DB transaction: state machine
-  const shouldProcess = await prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx) => {
     const attempt = await tx.documentIngestionAttempt.findUnique({
       where: { id: attemptId },
       select: {
@@ -121,12 +135,21 @@ async function handleMessage(msg: Message) {
       throw new Error(`Attempt ${attemptId} does not belong to document ${documentId}`);
     }
 
+    // Get document for userId
+    const doc = await tx.document.findUnique({
+      where: { id: documentId },
+      select: { userId: true },
+    });
+    if (!doc) {
+      throw new Error(`Document not found: ${documentId}`);
+    }
+
     // Idempotency: if already terminal, skip processing
     if (
       attempt.status === DocumentIngestionAttemptStatus.READY ||
       attempt.status === DocumentIngestionAttemptStatus.FAILED
     ) {
-      return false;
+      return { shouldProcess: false, userId: doc.userId };
     }
 
     // Only promote INITIATED -> PROCESSING
@@ -148,10 +171,11 @@ async function handleMessage(msg: Message) {
       },
     });
 
-    return true;
+    return { shouldProcess: true, userId: doc.userId };
   });
 
-  if (shouldProcess) {
+  // Run the ingestion job (PROCESSING status already published by API)
+  if (result.shouldProcess) {
     await ingestJob({ documentId, attemptId });
   }
 
