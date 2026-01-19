@@ -4,33 +4,33 @@
   --color-warm-sepia: #A8744F;
   --color-cream-parchment: #F2E6D8;
   --color-soft-sand: #E3D2BF;
-  
+
   /* Secondary Palette (Subtle Accent) */
   --color-olive-muted: #6F7A4F;
   --color-moss-green: #5E6B3A;
   --color-dusty-teal: #4F6F6B;
-  
+
   /* Neutrals */
   --color-charcoal: #2E2A26;
   --color-warm-gray: #6B645C;
   --color-off-white: #FAF7F3;
-  
+
   /* UI States */
   --color-hover: #7A4F33;
   --color-active: #5C3A25;
   --color-border: #D8C7B6;
-  
+
   /* Typography */
   --color-text-primary: #2E2A26;
   --color-text-secondary: #5A524B;
   --color-link: #5E6B3A;
-  
+
   /* Semantic Colors */
   --background: #FAF7F3;
   --foreground: #2E2A26;
   --surface: #F2E6D8;
   --surface-alt: #E3D2BF;
-  
+
   /* Component Specific */
   --card-bg: #FFFFFF;
   --card-border: #D8C7B6;
@@ -40,7 +40,7 @@
   --button-disabled: #6B645C;
   --input-border: #D8C7B6;
   --input-focus: #8B5E3C;
-  
+
   /* Status Colors */
   --success-bg: #f0fdf4;
   --success-border: #bbf7d0;
@@ -80,4 +80,13 @@ body {
 a {
   color: inherit;
   text-decoration: none;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }

@@ -10,6 +10,10 @@ type InitRes = {
   uploadUrl: string;
 };
 
+type DocumentUploadProps = {
+  onUploadSuccess?: () => void;
+};
+
 function formatBytes(n: number): string {
   if (n < 1024) return `${n} B`;
   const kb = n / 1024;
@@ -18,7 +22,7 @@ function formatBytes(n: number): string {
   return `${mb.toFixed(1)} MB`;
 }
 
-export function DocumentUpload() {
+export function DocumentUpload({ onUploadSuccess }: DocumentUploadProps = {}) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [documents, setDocuments] = useState<DocumentListItem[]>([]);
   const [isLoadingDocs, setIsLoadingDocs] = useState(true);
@@ -93,6 +97,7 @@ export function DocumentUpload() {
         .then(([docs, lims]) => {
           setDocuments(docs);
           setLimits(lims);
+          onUploadSuccess?.();
         })
         .catch((err) => console.error("Failed to refresh data:", err));
     } catch (err) {
@@ -127,31 +132,6 @@ export function DocumentUpload() {
 
   return (
     <div>
-      {limits && (
-        <div
-          style={{
-            marginBottom: 16,
-            padding: 12,
-            background: isAtLimit ? "var(--error-bg)" : isNearLimit ? "var(--warning-bg)" : "var(--success-bg)",
-            border: `1px solid ${isAtLimit ? "var(--error-border)" : isNearLimit ? "var(--warning-border)" : "var(--success-border)"}`,
-            borderRadius: 8,
-          }}
-        >
-          <div style={{ fontSize: 14, fontWeight: 600, color: isAtLimit ? "var(--error-text)" : isNearLimit ? "var(--warning-text)" : "var(--success-text)" }}>
-            Documents: {limits.documents.used}/{limits.documents.limit}
-          </div>
-          {isAtLimit && (
-            <div style={{ fontSize: 13, color: "var(--error-text)", marginTop: 4 }}>
-              Limit reached. You cannot upload more documents.
-            </div>
-          )}
-          {isNearLimit && (
-            <div style={{ fontSize: 13, color: "var(--warning-text)", marginTop: 4 }}>
-              You are approaching your document limit.
-            </div>
-          )}
-        </div>
-      )}
       <UploadCard onPick={onPickClick} disabled={isAtLimit || isUploading} />
 
       <input
@@ -190,69 +170,156 @@ export function DocumentUpload() {
             You haven&apos;t uploaded any files yet.
           </div>
         ) : (
-          <div style={{ display: "grid", gap: 8 }}>
-            {documents.map((doc) => (
-              <div
-                key={doc.id}
-                style={{
-                  position: "relative",
-                  border: "1px solid var(--card-border)",
-                  borderRadius: 12,
-                  padding: 12,
-                  display: "flex",
-                  justifyContent: "space-between",
-                  gap: 12,
-                  alignItems: "center",
-                  opacity: deletingDocId === doc.id ? 0.5 : 1,
-                  background: "var(--card-bg)",
-                }}
-              >
-                <div style={{ minWidth: 0, flex: 1 }}>
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
+            gap: 12,
+            padding: 16,
+            border: "1px solid var(--card-border)",
+            borderRadius: 12,
+            background: "var(--card-bg)",
+            minHeight: 120
+          }}>
+            {documents.map((doc) => {
+              const capitalizeStatus = (status: string) => {
+                return status.charAt(0) + status.slice(1).toLowerCase();
+              };
+
+              return (
+                <div
+                  key={doc.id}
+                  style={{
+                    position: "relative",
+                    border: "2px solid var(--card-border)",
+                    borderRadius: 8,
+                    padding: 12,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: 8,
+                    opacity: deletingDocId === doc.id ? 0.5 : 1,
+                    background: "var(--card-bg)",
+                    minHeight: 110,
+                    textAlign: "center"
+                  }}
+                >
+                  <button
+                    onClick={() => handleDeleteDocument(doc.id, doc.filename)}
+                    disabled={deletingDocId === doc.id}
+                    style={{
+                      position: "absolute",
+                      top: 4,
+                      right: 4,
+                      width: 20,
+                      height: 20,
+                      borderRadius: 4,
+                      border: "1px solid var(--card-border)",
+                      background: "var(--card-bg)",
+                      color: "var(--color-warm-gray)",
+                      fontSize: 14,
+                      fontWeight: 700,
+                      cursor: deletingDocId === doc.id ? "not-allowed" : "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      padding: 0,
+                    }}
+                    title="Delete document"
+                  >
+                    ×
+                  </button>
+
                   <div
                     style={{
                       fontWeight: 600,
+                      fontSize: 12,
                       overflow: "hidden",
                       textOverflow: "ellipsis",
                       whiteSpace: "nowrap",
+                      width: "100%",
                       color: "var(--color-text-primary)",
+                      marginTop: 8,
+                      flex: 1,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center"
                     }}
+                    title={doc.filename}
                   >
                     {doc.filename}
                   </div>
-                  <div style={{ fontSize: 13, color: "var(--color-text-secondary)" }}>
-                    {doc.size ? formatBytes(doc.size) : "Unknown size"} · {doc.status}
-                  </div>
-                  <div style={{ fontSize: 12, color: "var(--color-warm-gray)", marginTop: 2 }}>
-                    {new Date(doc.createdAt).toLocaleDateString()} {new Date(doc.createdAt).toLocaleTimeString()}
-                  </div>
+
+                  {doc.status === 'READY' && (
+                    <div style={{
+                      fontSize: 12,
+                      fontWeight: 400,
+                      color: "white",
+                      background: "#16a34a",
+                      padding: "4px 12px",
+                      borderRadius: 6,
+                      marginTop: "auto"
+                    }}>
+                      {capitalizeStatus(doc.status)}
+                    </div>
+                  )}
+                  {doc.status === 'PROCESSING' && (
+                    <div style={{
+                      fontSize: 12,
+                      fontWeight: 400,
+                      color: "white",
+                      background: "var(--color-warm-gray)",
+                      padding: "4px 12px",
+                      borderRadius: 6,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                      marginTop: "auto"
+                    }}>
+                      {capitalizeStatus(doc.status)}
+                      <span style={{
+                        fontSize: 14,
+                        animation: "spin 1s linear infinite",
+                        display: "inline-block"
+                      }}>
+                        ⟳
+                      </span>
+                    </div>
+                  )}
+                  {doc.status === 'FAILED' && (
+                    <div style={{
+                      fontSize: 12,
+                      fontWeight: 400,
+                      color: "white",
+                      background: "#dc2626",
+                      padding: "4px 12px",
+                      borderRadius: 6,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                      marginTop: "auto"
+                    }}>
+                      {capitalizeStatus(doc.status)} <span style={{ fontSize: 14 }}>!</span>
+                    </div>
+                  )}
+                  {(doc.status === 'CREATED' || doc.status === 'UPLOADED') && (
+                    <div style={{
+                      fontSize: 12,
+                      fontWeight: 400,
+                      color: "white",
+                      background: "var(--color-warm-gray)",
+                      padding: "4px 12px",
+                      borderRadius: 6,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                      marginTop: "auto"
+                    }}>
+                      {capitalizeStatus(doc.status)} <span style={{ fontSize: 14 }}>○</span>
+                    </div>
+                  )}
                 </div>
-                <button
-                  onClick={() => handleDeleteDocument(doc.id, doc.filename)}
-                  disabled={deletingDocId === doc.id}
-                  style={{
-                    position: "absolute",
-                    top: 8,
-                    right: 8,
-                    width: 24,
-                    height: 24,
-                    borderRadius: 6,
-                    border: "1px solid var(--card-border)",
-                    background: "var(--card-bg)",
-                    color: "var(--color-warm-gray)",
-                    fontSize: 16,
-                    fontWeight: 700,
-                    cursor: deletingDocId === doc.id ? "not-allowed" : "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    padding: 0,
-                  }}
-                  title="Delete document"
-                >
-                  ×
-                </button>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </section>
