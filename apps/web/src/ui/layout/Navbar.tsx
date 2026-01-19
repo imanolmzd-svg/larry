@@ -18,7 +18,7 @@ export function Navbar() {
       }}
     >
       <Link
-        href="/"
+        href={user ? "/?from=nav" : "/"}
         style={{
           fontSize: 20,
           fontWeight: 700,

@@ -1,18 +1,20 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/shared/auth";
 
 export default function Home() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const fromNav = searchParams.get("from") === "nav";
 
   useEffect(() => {
-    if (!isLoading && user) {
+    if (!isLoading && user && !fromNav) {
       router.push("/chat");
     }
-  }, [user, isLoading, router]);
+  }, [user, isLoading, router, fromNav]);
 
   if (isLoading) {
     return <div style={{ padding: "80px 16px", textAlign: "center" }}>Loading...</div>;

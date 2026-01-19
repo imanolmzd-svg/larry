@@ -1,4 +1,3 @@
-import { useEffect, useRef } from "react";
 import type { ChatMessage } from "@/shared/types";
 import { ChatSources } from "./ChatSources";
 
@@ -8,11 +7,6 @@ type MessageListProps = {
 };
 
 export function MessageList({ messages, loading }: MessageListProps) {
-  const endRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, loading]);
 
   if (messages.length === 0 && !loading) {
     return (
@@ -55,8 +49,7 @@ export function MessageList({ messages, loading }: MessageListProps) {
         flexDirection: "column",
         gap: 16,
         padding: 16,
-        minHeight: 300,
-        maxHeight: 500,
+        height: 350,
         overflowY: "auto",
       }}
     >
@@ -109,7 +102,6 @@ export function MessageList({ messages, loading }: MessageListProps) {
           </div>
         </div>
       )}
-      <div ref={endRef} />
     </div>
   );
 }
