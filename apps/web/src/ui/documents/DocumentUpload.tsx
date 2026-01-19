@@ -208,10 +208,6 @@ export function DocumentUpload({ onUploadSuccess }: DocumentUploadProps = {}) {
       <section>
         {isLoadingDocs ? (
           <div style={{ color: "var(--color-text-secondary)", fontSize: 14 }}>Loading...</div>
-        ) : documents.length === 0 ? (
-          <div style={{ color: "var(--color-text-secondary)", fontSize: 14 }}>
-            You haven&apos;t uploaded any files yet.
-          </div>
         ) : (
           <div style={{
             position: "relative",
@@ -223,7 +219,7 @@ export function DocumentUpload({ onUploadSuccess }: DocumentUploadProps = {}) {
             border: "1px solid var(--card-border)",
             borderRadius: 12,
             background: "var(--card-bg)",
-            minHeight: 180
+            minHeight: 240
           }}>
             {documents.map((doc) => {
               const capitalizeStatus = (status: string) => {
