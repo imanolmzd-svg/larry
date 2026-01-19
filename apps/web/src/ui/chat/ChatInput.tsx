@@ -29,9 +29,9 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
         display: "flex",
         gap: 8,
         padding: 16,
-        border: "1px solid #e5e7eb",
+        border: "1px solid var(--card-border)",
         borderRadius: 12,
-        background: "white",
+        background: "var(--card-bg)",
       }}
     >
       <textarea
@@ -49,6 +49,8 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
           fontSize: 14,
           minHeight: 40,
           padding: 8,
+          color: "var(--color-text-primary)",
+          background: "var(--card-bg)",
         }}
         rows={1}
       />
@@ -59,7 +61,7 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
           padding: "10px 16px",
           borderRadius: 8,
           border: "none",
-          background: disabled || !input.trim() ? "#d1d5db" : "black",
+          background: disabled || !input.trim() ? "var(--button-disabled)" : "var(--button-primary)",
           color: "white",
           cursor: disabled || !input.trim() ? "not-allowed" : "pointer",
           fontWeight: 600,

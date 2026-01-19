@@ -9,11 +9,12 @@ export function Navbar() {
   return (
     <nav
       style={{
-        borderBottom: "1px solid #e5e7eb",
+        borderBottom: "1px solid var(--card-border)",
         padding: "16px 24px",
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
+        background: "var(--background)",
       }}
     >
       <Link
@@ -22,7 +23,7 @@ export function Navbar() {
           fontSize: 20,
           fontWeight: 700,
           textDecoration: "none",
-          color: "#111827",
+          color: "var(--color-text-primary)",
         }}
       >
         Larry
@@ -33,7 +34,7 @@ export function Navbar() {
           href="/about"
           style={{
             textDecoration: "none",
-            color: "#4b5563",
+            color: "var(--color-text-secondary)",
             fontSize: 14,
           }}
         >
@@ -46,7 +47,7 @@ export function Navbar() {
               href="/chat"
               style={{
                 textDecoration: "none",
-                color: "#4b5563",
+                color: "var(--color-text-secondary)",
                 fontSize: 14,
               }}
             >
@@ -57,7 +58,7 @@ export function Navbar() {
               style={{
                 background: "none",
                 border: "none",
-                color: "#4b5563",
+                color: "var(--color-text-secondary)",
                 fontSize: 14,
                 cursor: "pointer",
                 padding: 0,
@@ -72,7 +73,7 @@ export function Navbar() {
               href="/login"
               style={{
                 textDecoration: "none",
-                color: "#4b5563",
+                color: "var(--color-text-secondary)",
                 fontSize: 14,
               }}
             >
@@ -82,7 +83,7 @@ export function Navbar() {
               href="/signup"
               style={{
                 textDecoration: "none",
-                color: "#4b5563",
+                color: "var(--color-text-secondary)",
                 fontSize: 14,
               }}
             >

@@ -15,16 +15,16 @@ export function ChatSources({ sources }: ChatSourcesProps) {
       style={{
         marginTop: 8,
         padding: 12,
-        background: "#f9fafb",
+        background: "var(--surface-alt)",
         borderRadius: 8,
-        border: "1px solid #e5e7eb",
+        border: "1px solid var(--card-border)",
       }}
     >
       <div
         style={{
           fontSize: 12,
           fontWeight: 600,
-          color: "#6b7280",
+          color: "var(--color-text-secondary)",
           marginBottom: 8,
         }}
       >
@@ -33,10 +33,10 @@ export function ChatSources({ sources }: ChatSourcesProps) {
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         {limitedSources.map((source, idx) => (
           <div key={idx} style={{ fontSize: 13 }}>
-            <div style={{ fontWeight: 600, color: "#374151" }}>
+            <div style={{ fontWeight: 600, color: "var(--color-text-primary)" }}>
               {source.documentName || source.documentId}
               {source.page && (
-                <span style={{ color: "#6b7280", fontWeight: 400 }}>
+                <span style={{ color: "var(--color-text-secondary)", fontWeight: 400 }}>
                   {" "}
                   · Page {source.page}
                 </span>
@@ -46,7 +46,7 @@ export function ChatSources({ sources }: ChatSourcesProps) {
               <div
                 style={{
                   marginTop: 4,
-                  color: "#6b7280",
+                  color: "var(--color-text-secondary)",
                   fontSize: 12,
                   fontStyle: "italic",
                 }}

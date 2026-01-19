@@ -70,21 +70,21 @@ export function ChatWindow() {
           style={{
             marginBottom: 16,
             padding: 12,
-            background: isAtLimit ? "#fef2f2" : isNearLimit ? "#fef3c7" : "#f0fdf4",
-            border: `1px solid ${isAtLimit ? "#fecaca" : isNearLimit ? "#fde68a" : "#bbf7d0"}`,
+            background: isAtLimit ? "var(--error-bg)" : isNearLimit ? "var(--warning-bg)" : "var(--success-bg)",
+            border: `1px solid ${isAtLimit ? "var(--error-border)" : isNearLimit ? "var(--warning-border)" : "var(--success-border)"}`,
             borderRadius: 8,
           }}
         >
-          <div style={{ fontSize: 14, fontWeight: 600, color: isAtLimit ? "#b91c1c" : isNearLimit ? "#92400e" : "#166534" }}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: isAtLimit ? "var(--error-text)" : isNearLimit ? "var(--warning-text)" : "var(--success-text)" }}>
             Questions: {limits.questions.used}/{limits.questions.limit}
           </div>
           {isAtLimit && (
-            <div style={{ fontSize: 13, color: "#b91c1c", marginTop: 4 }}>
+            <div style={{ fontSize: 13, color: "var(--error-text)", marginTop: 4 }}>
               Limit reached. You cannot ask more questions.
             </div>
           )}
           {isNearLimit && (
-            <div style={{ fontSize: 13, color: "#92400e", marginTop: 4 }}>
+            <div style={{ fontSize: 13, color: "var(--warning-text)", marginTop: 4 }}>
               You are approaching your question limit.
             </div>
           )}
@@ -92,17 +92,18 @@ export function ChatWindow() {
       )}
       <div
         style={{
-          border: "1px solid #e5e7eb",
+          border: "1px solid var(--card-border)",
           borderRadius: 12,
           overflow: "hidden",
+          background: "var(--card-bg)",
         }}
       >
         {error && (
           <div
             style={{
               padding: 12,
-              background: "#fef2f2",
-              border: "1px solid #fecaca",
+              background: "var(--error-bg)",
+              border: "1px solid var(--error-border)",
               borderRadius: 8,
               margin: 16,
               display: "flex",
@@ -110,15 +111,15 @@ export function ChatWindow() {
               alignItems: "center",
             }}
           >
-            <span style={{ color: "#b91c1c", fontSize: 14 }}>{error}</span>
+            <span style={{ color: "var(--error-text)", fontSize: 14 }}>{error}</span>
             <button
               onClick={handleRetry}
               style={{
                 padding: "6px 12px",
                 borderRadius: 6,
-                border: "1px solid #b91c1c",
-                background: "white",
-                color: "#b91c1c",
+                border: "1px solid var(--error-text)",
+                background: "var(--card-bg)",
+                color: "var(--error-text)",
                 cursor: "pointer",
                 fontSize: 13,
                 fontWeight: 600,
@@ -129,7 +130,7 @@ export function ChatWindow() {
           </div>
         )}
         <MessageList messages={messages} loading={loading} />
-        <div style={{ padding: 16, borderTop: "1px solid #e5e7eb" }}>
+        <div style={{ padding: 16, borderTop: "1px solid var(--card-border)" }}>
           <ChatInput onSend={handleSend} disabled={loading || isAtLimit} />
         </div>
       </div>

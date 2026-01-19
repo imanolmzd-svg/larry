@@ -9,7 +9,7 @@ export function UploadCard({ onPick, disabled = false }: UploadCardProps) {
   return (
     <div
       style={{
-        border: "1px solid #e5e7eb",
+        border: "1px solid var(--card-border)",
         borderRadius: 12,
         padding: 16,
         display: "flex",
@@ -17,11 +17,12 @@ export function UploadCard({ onPick, disabled = false }: UploadCardProps) {
         alignItems: "center",
         justifyContent: "space-between",
         marginBottom: 16,
+        background: "var(--card-bg)",
       }}
     >
       <div>
-        <div style={{ fontWeight: 600 }}>Upload file</div>
-        <div style={{ fontSize: 14, color: "#6b7280" }}>
+        <div style={{ fontWeight: 600, color: "var(--color-text-primary)" }}>Upload file</div>
+        <div style={{ fontSize: 14, color: "var(--color-text-secondary)" }}>
           PDF, TXT, CSV, Excel…
         </div>
       </div>
@@ -32,8 +33,8 @@ export function UploadCard({ onPick, disabled = false }: UploadCardProps) {
         style={{
           padding: "10px 12px",
           borderRadius: 10,
-          border: "1px solid #e5e7eb",
-          background: disabled ? "#9ca3af" : "black",
+          border: "none",
+          background: disabled ? "var(--button-disabled)" : "var(--button-primary)",
           color: "white",
           cursor: disabled ? "not-allowed" : "pointer",
           fontWeight: 600,

@@ -132,21 +132,21 @@ export function DocumentUpload() {
           style={{
             marginBottom: 16,
             padding: 12,
-            background: isAtLimit ? "#fef2f2" : isNearLimit ? "#fef3c7" : "#f0fdf4",
-            border: `1px solid ${isAtLimit ? "#fecaca" : isNearLimit ? "#fde68a" : "#bbf7d0"}`,
+            background: isAtLimit ? "var(--error-bg)" : isNearLimit ? "var(--warning-bg)" : "var(--success-bg)",
+            border: `1px solid ${isAtLimit ? "var(--error-border)" : isNearLimit ? "var(--warning-border)" : "var(--success-border)"}`,
             borderRadius: 8,
           }}
         >
-          <div style={{ fontSize: 14, fontWeight: 600, color: isAtLimit ? "#b91c1c" : isNearLimit ? "#92400e" : "#166534" }}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: isAtLimit ? "var(--error-text)" : isNearLimit ? "var(--warning-text)" : "var(--success-text)" }}>
             Documents: {limits.documents.used}/{limits.documents.limit}
           </div>
           {isAtLimit && (
-            <div style={{ fontSize: 13, color: "#b91c1c", marginTop: 4 }}>
+            <div style={{ fontSize: 13, color: "var(--error-text)", marginTop: 4 }}>
               Limit reached. You cannot upload more documents.
             </div>
           )}
           {isNearLimit && (
-            <div style={{ fontSize: 13, color: "#92400e", marginTop: 4 }}>
+            <div style={{ fontSize: 13, color: "var(--warning-text)", marginTop: 4 }}>
               You are approaching your document limit.
             </div>
           )}
@@ -167,11 +167,11 @@ export function DocumentUpload() {
           style={{
             marginBottom: 16,
             padding: 12,
-            background: "#f0f9ff",
-            border: "1px solid #bae6fd",
+            background: "var(--info-bg)",
+            border: "1px solid var(--info-border)",
             borderRadius: 8,
             fontSize: 14,
-            color: "#0369a1",
+            color: "var(--info-text)",
           }}
         >
           Uploading document...
@@ -179,14 +179,14 @@ export function DocumentUpload() {
       )}
 
       <section>
-        <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>
+        <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8, color: "var(--color-text-primary)" }}>
           Your documents
         </h2>
 
         {isLoadingDocs ? (
-          <div style={{ color: "#6b7280", fontSize: 14 }}>Loading...</div>
+          <div style={{ color: "var(--color-text-secondary)", fontSize: 14 }}>Loading...</div>
         ) : documents.length === 0 ? (
-          <div style={{ color: "#6b7280", fontSize: 14 }}>
+          <div style={{ color: "var(--color-text-secondary)", fontSize: 14 }}>
             You haven&apos;t uploaded any files yet.
           </div>
         ) : (
@@ -196,7 +196,7 @@ export function DocumentUpload() {
                 key={doc.id}
                 style={{
                   position: "relative",
-                  border: "1px solid #e5e7eb",
+                  border: "1px solid var(--card-border)",
                   borderRadius: 12,
                   padding: 12,
                   display: "flex",
@@ -204,6 +204,7 @@ export function DocumentUpload() {
                   gap: 12,
                   alignItems: "center",
                   opacity: deletingDocId === doc.id ? 0.5 : 1,
+                  background: "var(--card-bg)",
                 }}
               >
                 <div style={{ minWidth: 0, flex: 1 }}>
@@ -213,14 +214,15 @@ export function DocumentUpload() {
                       overflow: "hidden",
                       textOverflow: "ellipsis",
                       whiteSpace: "nowrap",
+                      color: "var(--color-text-primary)",
                     }}
                   >
                     {doc.filename}
                   </div>
-                  <div style={{ fontSize: 13, color: "#6b7280" }}>
+                  <div style={{ fontSize: 13, color: "var(--color-text-secondary)" }}>
                     {doc.size ? formatBytes(doc.size) : "Unknown size"} · {doc.status}
                   </div>
-                  <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 2 }}>
+                  <div style={{ fontSize: 12, color: "var(--color-warm-gray)", marginTop: 2 }}>
                     {new Date(doc.createdAt).toLocaleDateString()} {new Date(doc.createdAt).toLocaleTimeString()}
                   </div>
                 </div>
@@ -234,9 +236,9 @@ export function DocumentUpload() {
                     width: 24,
                     height: 24,
                     borderRadius: 6,
-                    border: "1px solid #e5e7eb",
-                    background: "white",
-                    color: "#6b7280",
+                    border: "1px solid var(--card-border)",
+                    background: "var(--card-bg)",
+                    color: "var(--color-warm-gray)",
                     fontSize: 16,
                     fontWeight: 700,
                     cursor: deletingDocId === doc.id ? "not-allowed" : "pointer",

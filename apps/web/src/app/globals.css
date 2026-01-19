@@ -1,13 +1,59 @@
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* Primary Palette (Vintage Warm) */
+  --color-brown-paper: #8B5E3C;
+  --color-warm-sepia: #A8744F;
+  --color-cream-parchment: #F2E6D8;
+  --color-soft-sand: #E3D2BF;
+  
+  /* Secondary Palette (Subtle Accent) */
+  --color-olive-muted: #6F7A4F;
+  --color-moss-green: #5E6B3A;
+  --color-dusty-teal: #4F6F6B;
+  
+  /* Neutrals */
+  --color-charcoal: #2E2A26;
+  --color-warm-gray: #6B645C;
+  --color-off-white: #FAF7F3;
+  
+  /* UI States */
+  --color-hover: #7A4F33;
+  --color-active: #5C3A25;
+  --color-border: #D8C7B6;
+  
+  /* Typography */
+  --color-text-primary: #2E2A26;
+  --color-text-secondary: #5A524B;
+  --color-link: #5E6B3A;
+  
+  /* Semantic Colors */
+  --background: #FAF7F3;
+  --foreground: #2E2A26;
+  --surface: #F2E6D8;
+  --surface-alt: #E3D2BF;
+  
+  /* Component Specific */
+  --card-bg: #FFFFFF;
+  --card-border: #D8C7B6;
+  --button-primary: #8B5E3C;
+  --button-primary-hover: #7A4F33;
+  --button-primary-active: #5C3A25;
+  --button-disabled: #6B645C;
+  --input-border: #D8C7B6;
+  --input-focus: #8B5E3C;
+  
+  /* Status Colors */
+  --success-bg: #f0fdf4;
+  --success-border: #bbf7d0;
+  --success-text: #166534;
+  --warning-bg: #fef3c7;
+  --warning-border: #fde68a;
+  --warning-text: #92400e;
+  --error-bg: #fef2f2;
+  --error-border: #fecaca;
+  --error-text: #b91c1c;
+  --info-bg: #f0f9ff;
+  --info-border: #bae6fd;
+  --info-text: #0369a1;
 }
 
 html,
@@ -19,7 +65,8 @@ body {
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-weight: 400;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -33,10 +80,4 @@ body {
 a {
   color: inherit;
   text-decoration: none;
-}
-
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
 }

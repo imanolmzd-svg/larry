@@ -26,14 +26,14 @@ export default function ChatPage() {
 
   return (
     <main style={{ maxWidth: 720, margin: "40px auto", padding: 16 }}>
-      <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 16 }}>
+      <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 16, color: "var(--color-text-primary)" }}>
         Documents
       </h1>
 
       <DocumentUpload />
 
       <div style={{ marginTop: 40 }}>
-        <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 16 }}>
+        <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 16, color: "var(--color-text-primary)" }}>
           Ask Larry
         </h2>
         <ChatWindow />

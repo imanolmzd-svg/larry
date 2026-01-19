@@ -20,7 +20,7 @@ export function MessageList({ messages, loading }: MessageListProps) {
         style={{
           padding: 40,
           textAlign: "center",
-          color: "#9ca3af",
+          color: "var(--color-text-secondary)",
           fontSize: 14,
         }}
       >
@@ -55,8 +55,8 @@ export function MessageList({ messages, loading }: MessageListProps) {
               maxWidth: "80%",
               padding: 12,
               borderRadius: 12,
-              background: msg.role === "user" ? "black" : "#f3f4f6",
-              color: msg.role === "user" ? "white" : "#1f2937",
+              background: msg.role === "user" ? "var(--color-soft-sand)" : "var(--surface)",
+              color: "var(--color-text-primary)",
               fontSize: 14,
               lineHeight: 1.5,
             }}
@@ -81,8 +81,8 @@ export function MessageList({ messages, loading }: MessageListProps) {
             style={{
               padding: 12,
               borderRadius: 12,
-              background: "#f3f4f6",
-              color: "#6b7280",
+              background: "var(--surface)",
+              color: "var(--color-text-secondary)",
               fontSize: 14,
             }}
           >

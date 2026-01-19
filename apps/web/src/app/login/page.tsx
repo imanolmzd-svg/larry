@@ -53,7 +53,7 @@ export default function LoginPage() {
 
   return (
     <main style={{ maxWidth: 420, margin: "40px auto", padding: 16 }}>
-      <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 24 }}>Login</h1>
+      <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 24, color: "var(--color-text-primary)" }}>Login</h1>
 
       <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         <div>
@@ -64,7 +64,7 @@ export default function LoginPage() {
               fontSize: 14,
               fontWeight: 600,
               marginBottom: 6,
-              color: "#374151"
+              color: "var(--color-text-primary)"
             }}
           >
             Email
@@ -77,14 +77,16 @@ export default function LoginPage() {
             style={{
               width: "100%",
               padding: "10px 12px",
-              border: `1px solid ${errors.email ? "#ef4444" : "#d1d5db"}`,
+              border: `1px solid ${errors.email ? "var(--error-text)" : "var(--input-border)"}`,
               borderRadius: 6,
               fontSize: 14,
               outline: "none",
+              background: "var(--card-bg)",
+              color: "var(--color-text-primary)",
             }}
           />
           {errors.email && (
-            <p style={{ color: "#ef4444", fontSize: 13, marginTop: 4 }}>
+            <p style={{ color: "var(--error-text)", fontSize: 13, marginTop: 4 }}>
               {errors.email}
             </p>
           )}
@@ -98,7 +100,7 @@ export default function LoginPage() {
               fontSize: 14,
               fontWeight: 600,
               marginBottom: 6,
-              color: "#374151"
+              color: "var(--color-text-primary)"
             }}
           >
             Password
@@ -111,14 +113,16 @@ export default function LoginPage() {
             style={{
               width: "100%",
               padding: "10px 12px",
-              border: `1px solid ${errors.password ? "#ef4444" : "#d1d5db"}`,
+              border: `1px solid ${errors.password ? "var(--error-text)" : "var(--input-border)"}`,
               borderRadius: 6,
               fontSize: 14,
               outline: "none",
+              background: "var(--card-bg)",
+              color: "var(--color-text-primary)",
             }}
           />
           {errors.password && (
-            <p style={{ color: "#ef4444", fontSize: 13, marginTop: 4 }}>
+            <p style={{ color: "var(--error-text)", fontSize: 13, marginTop: 4 }}>
               {errors.password}
             </p>
           )}
@@ -129,7 +133,7 @@ export default function LoginPage() {
           disabled={isLoading}
           style={{
             padding: "10px 16px",
-            background: isLoading ? "#6b7280" : "#111827",
+            background: isLoading ? "var(--button-disabled)" : "var(--button-primary)",
             color: "white",
             border: "none",
             borderRadius: 6,
