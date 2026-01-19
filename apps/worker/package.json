@@ -4,7 +4,11 @@
   "type": "module",
   "scripts": {
     "predev": "pnpm --filter @larry/db generate",
-    "dev": "tsx watch src/index.ts"
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "build:lambda": "esbuild src/lambda.ts --bundle --platform=node --target=node20 --outfile=dist-lambda/lambda.js --format=esm --banner:js=\"import { createRequire } from 'module'; const require = createRequire(import.meta.url);\"",
+    "package": "pnpm build:lambda && node scripts/package-lambda.mjs",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.971.0",
@@ -18,7 +22,11 @@
     "zod": "^3"
   },
   "devDependencies": {
+    "@types/archiver": "^7.0.0",
+    "@types/aws-lambda": "^8",
     "@types/node": "^20",
+    "archiver": "^7.0.1",
+    "esbuild": "^0.27.2",
     "tsx": "^4",
     "typescript": "^5"
   }

@@ -3,9 +3,13 @@ node_modules/
 
 # Build outputs
 dist/
+dist-lambda/
 build/
 .next/
 out/
+
+# Lambda deployment artifacts
+*.zip
 
 # Environment
 .env

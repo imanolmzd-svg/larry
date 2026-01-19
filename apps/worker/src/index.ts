@@ -1,28 +1,29 @@
-// apps/worker/src/main.ts
+/**
+ * Local development worker - long-polling mode.
+ *
+ * This is for local dev only. In production, use lambda.ts with AWS Lambda triggers.
+ * The worker polls SQS, processes messages, and acknowledges them.
+ */
 import "dotenv/config";
 import { prisma } from "@larry/db";
-import { DocumentIngestionAttemptStatus, DocumentStatus } from "@larry/db/src/generated/prisma/enums.js";
 import {
   SQSClient,
   ReceiveMessageCommand,
   DeleteMessageCommand,
   Message,
 } from "@aws-sdk/client-sqs";
-import { ingestJob } from "./ingestJob.js";
-import { publishDocumentStatus } from "./lib/redisProgress.js";
+import {
+  processMessage,
+  parseBody,
+  markFailedBestEffort,
+} from "./messageHandler.js";
 import {
   SQS_MAX_MESSAGES,
   SQS_WAIT_TIME_SECONDS,
   SQS_VISIBILITY_TIMEOUT_SECONDS,
   SQS_DEFAULT_REGION,
-  MAX_ERROR_MESSAGE_LENGTH,
 } from "./config/constants.js";
 import { ENV } from "./config/env.js";
-
-type IngestMessageBody = {
-  documentId: string;
-  attemptId: string;
-};
 
 /**
  * SQS client configured for local (localstack) or AWS SQS (prod).
@@ -43,147 +44,18 @@ const sqs = new SQSClient({
     : {}),
 });
 
-function parseBody(raw: string | undefined): IngestMessageBody {
-  if (!raw) throw new Error("SQS message has empty Body");
-  let obj: unknown;
-  try {
-    obj = JSON.parse(raw);
-  } catch {
-    throw new Error("SQS message Body is not valid JSON");
-  }
-  const body = obj as Partial<IngestMessageBody>;
-  if (!body.documentId || !body.attemptId) {
-    throw new Error("SQS message Body must include documentId and attemptId");
-  }
-  return { documentId: body.documentId, attemptId: body.attemptId };
-}
-
-async function markFailedBestEffort(params: {
-  documentId: string;
-  attemptId: string;
-  errorCode: string;
-  errorMessage: string;
-}) {
-  const { documentId, attemptId, errorCode, errorMessage } = params;
-
-  try {
-    const userId = await prisma.$transaction(async (tx) => {
-      // Only fail if attempt exists and is not READY already
-      const attempt = await tx.documentIngestionAttempt.findUnique({
-        where: { id: attemptId },
-        select: { id: true, documentId: true, status: true },
-      });
-
-      if (!attempt) return null;
-      if (attempt.documentId !== documentId) return null;
-      if (attempt.status === DocumentIngestionAttemptStatus.READY) return null;
-
-      // Get userId for publishing
-      const doc = await tx.document.findUnique({
-        where: { id: documentId },
-        select: { userId: true },
-      });
-
-      await tx.documentIngestionAttempt.update({
-        where: { id: attemptId },
-        data: {
-          status: DocumentIngestionAttemptStatus.FAILED,
-          errorCode,
-          errorMessage: errorMessage.slice(0, MAX_ERROR_MESSAGE_LENGTH),
-          finishedAt: new Date(),
-        },
-      });
-
-      await tx.document.update({
-        where: { id: documentId },
-        data: {
-          status: DocumentStatus.FAILED,
-        },
-      });
-
-      return doc?.userId ?? null;
-    });
-
-    // Publish FAILED status to Redis for real-time updates
-    if (userId) {
-      await publishDocumentStatus(userId, documentId, "FAILED", attemptId);
-    }
-  } catch {
-    // swallow: best effort only
-  }
-}
-
-async function handleMessage(msg: Message) {
+/**
+ * Handle a single SQS message in local dev mode.
+ * Processes the message and acknowledges it on success.
+ */
+async function handleMessage(msg: Message): Promise<void> {
   const receiptHandle = msg.ReceiptHandle;
   if (!receiptHandle) throw new Error("SQS message missing ReceiptHandle");
 
-  const { documentId, attemptId } = parseBody(msg.Body);
-  console.log(`[worker] Processing doc=${documentId} attempt=${attemptId}`);
+  // Process the message using shared logic
+  await processMessage(msg.Body ?? "");
 
-  // 1) DB transaction: state machine
-  const result = await prisma.$transaction(async (tx) => {
-    const attempt = await tx.documentIngestionAttempt.findUnique({
-      where: { id: attemptId },
-      select: {
-        id: true,
-        documentId: true,
-        status: true,
-        startedAt: true,
-        finishedAt: true,
-      },
-    });
-    if (!attempt) {
-      throw new Error(`Attempt not found: ${attemptId}`);
-    }
-    if (attempt.documentId !== documentId) {
-      throw new Error(`Attempt ${attemptId} does not belong to document ${documentId}`);
-    }
-
-    // Get document for userId
-    const doc = await tx.document.findUnique({
-      where: { id: documentId },
-      select: { userId: true },
-    });
-    if (!doc) {
-      throw new Error(`Document not found: ${documentId}`);
-    }
-
-    // Idempotency: if already terminal, skip processing
-    if (
-      attempt.status === DocumentIngestionAttemptStatus.READY ||
-      attempt.status === DocumentIngestionAttemptStatus.FAILED
-    ) {
-      return { shouldProcess: false, userId: doc.userId };
-    }
-
-    // Only promote INITIATED -> PROCESSING
-    if (attempt.status === DocumentIngestionAttemptStatus.INITIATED) {
-      await tx.documentIngestionAttempt.update({
-        where: { id: attemptId },
-        data: {
-          status: DocumentIngestionAttemptStatus.PROCESSING,
-          startedAt: attempt.startedAt ?? new Date(),
-        },
-      });
-    }
-
-    // Ensure Document status reflects processing
-    await tx.document.update({
-      where: { id: documentId },
-      data: {
-        status: DocumentStatus.PROCESSING,
-      },
-    });
-
-    return { shouldProcess: true, userId: doc.userId };
-  });
-
-  // Run the ingestion job (PROCESSING status already published by API)
-  if (result.shouldProcess) {
-    await ingestJob({ documentId, attemptId });
-  }
-
-  // 2) Ack SQS only after DB commit
+  // Ack SQS only after successful processing
   await sqs.send(
     new DeleteMessageCommand({
       QueueUrl: ENV.SQS_QUEUE_URL,
@@ -193,9 +65,13 @@ async function handleMessage(msg: Message) {
   console.log(`[worker] Message acknowledged`);
 }
 
-async function main() {
+/**
+ * Main polling loop for local development.
+ */
+async function main(): Promise<void> {
   // Basic connectivity check
   await prisma.$connect();
+  console.log("[worker] Connected to database, starting poll loop...");
 
   // Poll forever
   // Note: for local dev you can add a SIGINT handler to disconnect gracefully.
@@ -244,7 +120,6 @@ async function main() {
 }
 
 main().catch((e) => {
-  // eslint-disable-next-line no-console
   console.error(e);
   process.exit(1);
 });

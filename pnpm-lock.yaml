@@ -180,9 +180,21 @@ importers:
         specifier: ^3
         version: 3.25.76
     devDependencies:
+      '@types/archiver':
+        specifier: ^7.0.0
+        version: 7.0.0
+      '@types/aws-lambda':
+        specifier: ^8
+        version: 8.10.159
       '@types/node':
         specifier: ^20
         version: 20.19.30
+      archiver:
+        specifier: ^7.0.1
+        version: 7.0.1
+      esbuild:
+        specifier: ^0.27.2
+        version: 0.27.2
       tsx:
         specifier: ^4
         version: 4.21.0
@@ -1324,6 +1336,9 @@ packages:
 
   '@types/archiver@7.0.0':
     resolution: {integrity: sha512-/3vwGwx9n+mCQdYZ2IKGGHEFL30I96UgBlk8EtRDDFQ9uxM1l4O5Ci6r00EMAkiDaTqD9DQ6nVrWRICnBPtzzg==}
+
+  '@types/aws-lambda@8.10.159':
+    resolution: {integrity: sha512-SAP22WSGNN12OQ8PlCzGzRCZ7QDCwI85dQZbmpz7+mAk+L7j+wI7qnvmdKh+o7A5LaOp6QnOZ2NJphAZQTTHQg==}
 
   '@types/bcryptjs@3.0.0':
     resolution: {integrity: sha512-WRZOuCuaz8UcZZE4R5HXTco2goQSI2XxjGY3hbM/xDvwmqFWd4ivooImsMx65OKM6CtNKbnZ5YL+YwAwK7c1dg==}
@@ -5023,6 +5038,8 @@ snapshots:
   '@types/archiver@7.0.0':
     dependencies:
       '@types/readdir-glob': 1.1.5
+
+  '@types/aws-lambda@8.10.159': {}
 
   '@types/bcryptjs@3.0.0':
     dependencies:
