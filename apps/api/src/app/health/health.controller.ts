@@ -1,8 +1,9 @@
 import { Request, Response } from "express";
 import pg from "pg";
 import { Redis } from "ioredis";
-import { S3Client, ListBucketsCommand } from "@aws-sdk/client-s3";
+import { HeadBucketCommand } from "@aws-sdk/client-s3";
 import { ENV } from "../../config/env.js";
+import { s3, S3_BUCKET_NAME } from "../../infra/s3/client.js";
 
 export async function healthHandler(_req: Request, res: Response) {
   const errors: string[] = [];
@@ -30,30 +31,13 @@ export async function healthHandler(_req: Request, res: Response) {
     }
   }
 
-  // Check S3/MinIO
-  if (!ENV.S3_PUBLIC_ENDPOINT || !ENV.S3_ACCESS_KEY || !ENV.S3_SECRET_KEY) {
-    const missing = [
-      !ENV.S3_PUBLIC_ENDPOINT && "S3_ENDPOINT",
-      !ENV.S3_ACCESS_KEY && "S3_KEY",
-      !ENV.S3_SECRET_KEY && "S3_SECRET",
-    ].filter(Boolean).join(", ");
-    errors.push(`s3: missing env vars: ${missing}`);
-  } else {
-    try {
-      const s3 = new S3Client({
-        endpoint: ENV.S3_PUBLIC_ENDPOINT,
-        credentials: {
-          accessKeyId: ENV.S3_ACCESS_KEY,
-          secretAccessKey: ENV.S3_SECRET_KEY,
-        },
-        region: ENV.S3_REGION,
-        forcePathStyle: true,
-      });
-      await s3.send(new ListBucketsCommand({}));
-      s3.destroy();
-    } catch (err) {
-      errors.push(`s3: ${err instanceof Error ? err.message : "unknown error"}`);
-    }
+  // Check S3 - works for both MinIO and AWS S3
+  // Uses HeadBucket as a lightweight connectivity check
+  try {
+    await s3.send(new HeadBucketCommand({ Bucket: S3_BUCKET_NAME }));
+  } catch (err) {
+    const mode = ENV.S3_ENDPOINT ? "minio" : "aws";
+    errors.push(`s3 (${mode}): ${err instanceof Error ? err.message : "unknown error"}`);
   }
 
   if (errors.length > 0) {

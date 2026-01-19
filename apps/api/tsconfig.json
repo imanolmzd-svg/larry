@@ -6,7 +6,8 @@
     "moduleResolution": "nodenext",
     "module": "nodenext",
     "target": "ES2022",
-    "types": ["node"]
+    "types": ["node"],
+    "noEmit": false
   },
   "include": ["src"]
 }

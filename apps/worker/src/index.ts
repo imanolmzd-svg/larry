@@ -24,13 +24,23 @@ type IngestMessageBody = {
   attemptId: string;
 };
 
+/**
+ * SQS client configured for local (localstack) or AWS SQS (prod).
+ * - If SQS_ENDPOINT is set: uses localstack with explicit credentials
+ * - If SQS_ENDPOINT is NOT set: uses AWS SQS with IAM role
+ */
 const sqs = new SQSClient({
   region: ENV.SQS_REGION ?? SQS_DEFAULT_REGION,
   endpoint: ENV.SQS_ENDPOINT,
-  credentials: {
-    accessKeyId: ENV.SQS_ACCESS_KEY_ID,
-    secretAccessKey: ENV.SQS_SECRET_ACCESS_KEY,
-  },
+  // Only provide credentials when running against localstack (endpoint set)
+  ...(ENV.SQS_ENDPOINT && ENV.SQS_ACCESS_KEY_ID && ENV.SQS_SECRET_ACCESS_KEY
+    ? {
+        credentials: {
+          accessKeyId: ENV.SQS_ACCESS_KEY_ID,
+          secretAccessKey: ENV.SQS_SECRET_ACCESS_KEY,
+        },
+      }
+    : {}),
 });
 
 function parseBody(raw: string | undefined): IngestMessageBody {

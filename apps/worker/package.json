@@ -10,6 +10,7 @@
     "@aws-sdk/client-s3": "^3.971.0",
     "@aws-sdk/client-sqs": "^3.971.0",
     "@larry/db": "workspace:^",
+    "@larry/infra": "workspace:^",
     "@larry/shared": "workspace:^",
     "ioredis": "^5",
     "openai": "^6.16.0",
