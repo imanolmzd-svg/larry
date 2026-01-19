@@ -10,32 +10,26 @@ import {
 } from "@aws-sdk/client-sqs";
 import { ingestJob } from "./ingestJob.js";
 import { publishDocumentStatus } from "./lib/redisProgress.js";
-
+import {
+  SQS_MAX_MESSAGES,
+  SQS_WAIT_TIME_SECONDS,
+  SQS_VISIBILITY_TIMEOUT_SECONDS,
+  SQS_DEFAULT_REGION,
+  MAX_ERROR_MESSAGE_LENGTH,
+} from "./config/constants.js";
+import { ENV } from "./config/env.js";
 
 type IngestMessageBody = {
   documentId: string;
   attemptId: string;
 };
 
-
-function requiredEnv(name: string): string {
-  const v = process.env[name];
-  if (!v) throw new Error(`Missing env var: ${name}`);
-  return v;
-}
-
-const SQS_REGION = process.env.SQS_REGION ?? "us-east-1";
-const SQS_QUEUE_URL = requiredEnv("SQS_QUEUE_URL");
-
-// LocalStack support: set SQS_ENDPOINT=http://localhost:4566
-const SQS_ENDPOINT = process.env.SQS_ENDPOINT;
-
 const sqs = new SQSClient({
-  region: SQS_REGION,
-  endpoint: SQS_ENDPOINT,
+  region: ENV.SQS_REGION ?? SQS_DEFAULT_REGION,
+  endpoint: ENV.SQS_ENDPOINT,
   credentials: {
-    accessKeyId: process.env.SQS_ACCESS_KEY_ID ?? "test",
-    secretAccessKey: process.env.SQS_SECRET_ACCESS_KEY ?? "test",
+    accessKeyId: ENV.SQS_ACCESS_KEY_ID,
+    secretAccessKey: ENV.SQS_SECRET_ACCESS_KEY,
   },
 });
 
@@ -85,7 +79,7 @@ async function markFailedBestEffort(params: {
         data: {
           status: DocumentIngestionAttemptStatus.FAILED,
           errorCode,
-          errorMessage: errorMessage.slice(0, 4000),
+          errorMessage: errorMessage.slice(0, MAX_ERROR_MESSAGE_LENGTH),
           finishedAt: new Date(),
         },
       });
@@ -182,7 +176,7 @@ async function handleMessage(msg: Message) {
   // 2) Ack SQS only after DB commit
   await sqs.send(
     new DeleteMessageCommand({
-      QueueUrl: SQS_QUEUE_URL,
+      QueueUrl: ENV.SQS_QUEUE_URL,
       ReceiptHandle: receiptHandle,
     })
   );
@@ -198,10 +192,10 @@ async function main() {
   for (;;) {
     const res = await sqs.send(
       new ReceiveMessageCommand({
-        QueueUrl: SQS_QUEUE_URL,
-        MaxNumberOfMessages: 5,
-        WaitTimeSeconds: 20, // long poll
-        VisibilityTimeout: 60, // give ourselves time to process
+        QueueUrl: ENV.SQS_QUEUE_URL,
+        MaxNumberOfMessages: SQS_MAX_MESSAGES,
+        WaitTimeSeconds: SQS_WAIT_TIME_SECONDS,
+        VisibilityTimeout: SQS_VISIBILITY_TIMEOUT_SECONDS,
       })
     );
 

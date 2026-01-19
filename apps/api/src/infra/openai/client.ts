@@ -1,10 +1,6 @@
 import OpenAI from "openai";
+import { ENV } from "../../config/env.js";
 
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-if (!OPENAI_API_KEY) {
-  throw new Error("Missing env var: OPENAI_API_KEY");
-}
-
-export const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
-export const EMBEDDING_MODEL = process.env.OPENAI_EMBEDDINGS_MODEL ?? "text-embedding-3-small";
-export const CHAT_MODEL = process.env.OPENAI_CHAT_MODEL ?? "gpt-4o-mini";
+export const openai = new OpenAI({ apiKey: ENV.OPENAI_API_KEY });
+export const EMBEDDING_MODEL = ENV.OPENAI_EMBEDDINGS_MODEL;
+export const CHAT_MODEL = ENV.OPENAI_CHAT_MODEL;

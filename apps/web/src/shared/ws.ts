@@ -1,8 +1,12 @@
 "use client";
 
 import { io, Socket } from "socket.io-client";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+import {
+  WS_RECONNECTION_ATTEMPTS,
+  WS_RECONNECTION_DELAY_MS,
+  WS_RECONNECTION_DELAY_MAX_MS,
+} from "@/config/constants";
+import { ENV } from "@/config/env";
 
 export type DocumentStatusEvent = {
   type: "document.status.changed";
@@ -28,13 +32,13 @@ export function connectWebSocket(token: string): Socket {
     socket.disconnect();
   }
 
-  socket = io(API_URL, {
+  socket = io(ENV.API_URL, {
     auth: { token },
     transports: ["websocket", "polling"],
     reconnection: true,
-    reconnectionAttempts: 10,
-    reconnectionDelay: 1000,
-    reconnectionDelayMax: 5000,
+    reconnectionAttempts: WS_RECONNECTION_ATTEMPTS,
+    reconnectionDelay: WS_RECONNECTION_DELAY_MS,
+    reconnectionDelayMax: WS_RECONNECTION_DELAY_MAX_MS,
   });
 
   socket.on("connect", () => {

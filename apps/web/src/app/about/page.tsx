@@ -79,8 +79,12 @@ export default function AboutPage() {
           Technologies
         </h2>
         <p style={{ fontSize: 16, color: "var(--color-text-secondary)", lineHeight: 1.6 }}>
-          Built with Next.js, TypeScript, Node.js, PostgreSQL with pgvector, OpenAI embeddings, Redis, MinIO/S3, 
-          and Bull for job processing. Deployed using Docker containers.
+          Built with Next.js, TypeScript, Node.js, PostgreSQL with pgvector, OpenAI embeddings, Redis, S3, 
+          SQS, and WebSockets for real-time updates.
+        </p>
+        <br />
+        <p style={{ fontSize: 16, color: "var(--color-text-secondary)", lineHeight: 1.6 }}>
+          Deployed on AWS (backend) and Vercel (frontend).
         </p>
       </section>
 

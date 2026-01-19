@@ -4,6 +4,7 @@ import React, { useRef, useState, useEffect, useCallback } from "react";
 import { apiPost, getDocuments, deleteDocument, getUserLimits } from "@/shared/api";
 import type { DocumentListItem, UserLimits } from "@/shared/types";
 import { connectWebSocket, subscribeToStatusChanges, isConnected, type DocumentStatusEvent } from "@/shared/ws";
+import { DOCUMENT_POLL_INTERVAL_MS } from "@/config/constants";
 
 type InitRes = {
   documentId: string;
@@ -82,7 +83,7 @@ export function DocumentUpload({ onUploadSuccess }: DocumentUploadProps = {}) {
       unsubscribe = subscribeToStatusChanges(handleStatusChange);
     }
 
-    // Fallback: Poll for updates every 3 seconds if any document is PROCESSING
+    // Fallback: Poll for updates if any document is PROCESSING
     // Only poll if WebSocket is not connected
     const pollInterval = setInterval(async () => {
       if (isConnected()) return; // Skip polling if WebSocket is working
@@ -98,7 +99,7 @@ export function DocumentUpload({ onUploadSuccess }: DocumentUploadProps = {}) {
           console.error("Polling failed:", err);
         }
       }
-    }, 3000);
+    }, DOCUMENT_POLL_INTERVAL_MS);
 
     return () => {
       unsubscribe?.();

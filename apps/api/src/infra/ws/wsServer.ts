@@ -3,8 +3,8 @@ import { Server as SocketIOServer, Socket } from "socket.io";
 import { Redis } from "ioredis";
 import { verifyToken } from "../../domain/auth/authService.js";
 import { getRedisChannel, validateDocumentStatusEvent } from "@larry/shared";
-
-const REDIS_URL = process.env.REDIS_URL;
+import { CORS_ORIGIN } from "../../config/constants.js";
+import { ENV } from "../../config/env.js";
 
 // Track subscriptions per user for reference counting
 const userConnections = new Map<string, Set<string>>(); // userId -> Set<socketId>
@@ -17,14 +17,14 @@ const subscribedChannels = new Set<string>();
 export function initWebSocketServer(httpServer: HttpServer): SocketIOServer {
   io = new SocketIOServer(httpServer, {
     cors: {
-      origin: "http://localhost:3000",
+      origin: CORS_ORIGIN,
       credentials: true,
     },
   });
 
   // Initialize Redis subscriber if URL is available
-  if (REDIS_URL) {
-    redisSubscriber = new Redis(REDIS_URL);
+  if (ENV.REDIS_URL) {
+    redisSubscriber = new Redis(ENV.REDIS_URL);
 
     redisSubscriber.on("message", (channel, message) => {
       handleRedisMessage(channel, message);

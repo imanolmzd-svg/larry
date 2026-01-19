@@ -4,15 +4,14 @@ import {
   getRedisChannel,
   type DocumentStatusType,
 } from "@larry/shared";
-
-const REDIS_URL = process.env.REDIS_URL;
+import { ENV } from "../../config/env.js";
 
 let redis: Redis | null = null;
 
 function getRedis(): Redis | null {
-  if (!REDIS_URL) return null;
+  if (!ENV.REDIS_URL) return null;
   if (!redis) {
-    redis = new Redis(REDIS_URL);
+    redis = new Redis(ENV.REDIS_URL);
   }
   return redis;
 }

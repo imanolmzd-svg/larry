@@ -2,9 +2,8 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { prisma } from "@larry/db";
 import type { JWTPayload, LoginResponse } from "./types.js";
-
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production";
-const JWT_EXPIRES_IN = "7d";
+import { JWT_EXPIRES_IN } from "../../config/constants.js";
+import { ENV } from "../../config/env.js";
 
 export async function login(email: string, password: string): Promise<LoginResponse> {
   // Find user by email
@@ -30,7 +29,7 @@ export async function login(email: string, password: string): Promise<LoginRespo
     email: user.email
   };
 
-  const token = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+  const token = jwt.sign(payload, ENV.JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
 
   return {
     token,
@@ -43,7 +42,7 @@ export async function login(email: string, password: string): Promise<LoginRespo
 
 export function verifyToken(token: string): JWTPayload {
   try {
-    return jwt.verify(token, JWT_SECRET) as JWTPayload;
+    return jwt.verify(token, ENV.JWT_SECRET) as JWTPayload;
   } catch {
     throw new Error("Invalid token");
   }

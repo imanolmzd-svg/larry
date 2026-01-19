@@ -1,6 +1,7 @@
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { s3 } from "./client.js";
+import { PRESIGN_URL_EXPIRES_SECONDS } from "../../config/constants.js";
 
 export async function presignPutObject(params: {
   bucket: string;
@@ -16,7 +17,7 @@ export async function presignPutObject(params: {
   });
 
   const url = await getSignedUrl(s3, cmd, {
-    expiresIn: params.expiresInSeconds ?? 60 * 5,
+    expiresIn: params.expiresInSeconds ?? PRESIGN_URL_EXPIRES_SECONDS,
   });
 
   return url;

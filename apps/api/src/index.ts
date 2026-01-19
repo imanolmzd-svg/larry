@@ -12,30 +12,19 @@ import { postAuthLogin } from "./app/routes/authLogin.js";
 import { authMiddleware } from "./infra/middleware/auth.js";
 import { healthHandler } from "./app/health/health.controller.js";
 import { initWebSocketServer } from "./infra/ws/wsServer.js";
+import { SERVER_PORT, SERVER_HOST, CORS_ORIGIN } from "./config/constants.js";
+import { getEnvStatus } from "./config/env.js";
 
 const app = express();
-const PORT = 4000;
-const HOST = "0.0.0.0";
 
 // Log env status at startup (never print secrets)
-console.log("Env check:", {
-  DATABASE_URL: process.env.DATABASE_URL ? "set" : "missing",
-  REDIS_URL: process.env.REDIS_URL ? "set" : "missing",
-  S3_INTERNAL_ENDPOINT: process.env.S3_INTERNAL_ENDPOINT ? "set" : "missing",
-  S3_PUBLIC_ENDPOINT: process.env.S3_PUBLIC_ENDPOINT ? "set" : "missing",
-  S3_ACCESS_KEY: process.env.S3_ACCESS_KEY ? "set" : "missing",
-  S3_SECRET_KEY: process.env.S3_SECRET_KEY ? "set" : "missing",
-  SQS_QUEUE_URL: process.env.SQS_QUEUE_URL ? "set" : "missing",
-  SQS_REGION: process.env.SQS_REGION ? "set" : "missing",
-  SQS_ACCESS_KEY_ID: process.env.SQS_ACCESS_KEY_ID ? "set" : "missing",
-  SQS_SECRET_ACCESS_KEY: process.env.SQS_SECRET_ACCESS_KEY ? "set" : "missing",
-});
+console.log("Env check:", getEnvStatus());
 
 app.use(express.json());
 
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: CORS_ORIGIN,
     credentials: true,
   })
 );
@@ -57,8 +46,8 @@ app.post("/chat/ask", authMiddleware, postChatAsk);
 const httpServer = createServer(app);
 initWebSocketServer(httpServer);
 
-httpServer.listen(PORT, HOST, () => {
-  console.log(`API listening on http://${HOST}:${PORT}`);
+httpServer.listen(SERVER_PORT, SERVER_HOST, () => {
+  console.log(`API listening on http://${SERVER_HOST}:${SERVER_PORT}`);
 });
 
 httpServer.on("error", (err) => {

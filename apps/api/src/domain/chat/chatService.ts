@@ -4,6 +4,7 @@ import { findSimilarChunks } from "../../infra/db/chunkRepository.js";
 import { buildRagPrompt } from "./promptBuilder.js";
 import { mapChunksToSources } from "./sourceMapper.js";
 import type { ChatResponse } from "./types.js";
+import { MAX_QUESTION_LENGTH, DEFAULT_CHUNK_RETRIEVAL_LIMIT } from "../../config/constants.js";
 
 const NO_ANSWER_RESPONSE = "I couldn't find this information in your documents.";
 
@@ -40,8 +41,8 @@ export async function askQuestion(
     throw new Error("Question cannot be empty");
   }
 
-  if (question.length > 2000) {
-    throw new Error("Question too long (max 2000 chars)");
+  if (question.length > MAX_QUESTION_LENGTH) {
+    throw new Error(`Question too long (max ${MAX_QUESTION_LENGTH} chars)`);
   }
 
   // 1. Generate embedding
@@ -51,7 +52,7 @@ export async function askQuestion(
 
   // 2. Retrieve chunks
   const startRetrieval = Date.now();
-  const chunks = await findSimilarChunks(embedding, userId, 5);
+  const chunks = await findSimilarChunks(embedding, userId, DEFAULT_CHUNK_RETRIEVAL_LIMIT);
   const retrievalTime = Date.now() - startRetrieval;
 
   console.log(`[chat] Retrieved ${chunks.length} chunks in ${retrievalTime}ms (embed: ${embedTime}ms)`);

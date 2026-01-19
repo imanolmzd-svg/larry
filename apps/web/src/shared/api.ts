@@ -1,4 +1,5 @@
 import type { ChatAskResponse, DocumentListItem, UserLimits } from "./types";
+import { ENV } from "@/config/env";
 
 export async function apiGet<TRes>(path: string): Promise<TRes> {
   const token = localStorage.getItem("auth_token");
@@ -9,7 +10,7 @@ export async function apiGet<TRes>(path: string): Promise<TRes> {
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${path}`, {
+  const res = await fetch(`${ENV.API_URL}${path}`, {
     method: "GET",
     headers,
   });
@@ -42,7 +43,7 @@ export async function apiPost<TRes>(
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${path}`, {
+  const res = await fetch(`${ENV.API_URL}${path}`, {
     method: "POST",
     headers,
     body: JSON.stringify(body),
@@ -81,7 +82,7 @@ export async function deleteDocument(documentId: string): Promise<void> {
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/documents`, {
+  const res = await fetch(`${ENV.API_URL}/documents`, {
     method: "DELETE",
     headers,
     body: JSON.stringify({ documentId }),

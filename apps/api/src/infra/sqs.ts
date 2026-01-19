@@ -1,22 +1,19 @@
 import { SQSClient, SendMessageCommand } from "@aws-sdk/client-sqs";
-
-const { SQS_REGION, SQS_ENDPOINT, SQS_QUEUE_URL } = process.env;
-
-if (!SQS_QUEUE_URL) throw new Error("Missing SQS_QUEUE_URL");
+import { SQS_DEFAULT_REGION } from "../config/constants.js";
+import { ENV } from "../config/env.js";
 
 export const sqs = new SQSClient({
-  region: SQS_REGION || "us-east-1",
-  endpoint: SQS_ENDPOINT,
-  // LocalStack does not require real credentials, but SDK wants something.
+  region: ENV.SQS_REGION || SQS_DEFAULT_REGION,
+  endpoint: ENV.SQS_ENDPOINT,
   credentials: {
-    accessKeyId: process.env.SQS_ACCESS_KEY_ID || "test",
-    secretAccessKey: process.env.SQS_SECRET_ACCESS_KEY || "test",
+    accessKeyId: ENV.SQS_ACCESS_KEY_ID,
+    secretAccessKey: ENV.SQS_SECRET_ACCESS_KEY,
   },
 });
 
 export async function enqueueIngestionMessage(payload: { documentId: string; attemptId: string }) {
   const cmd = new SendMessageCommand({
-    QueueUrl: SQS_QUEUE_URL,
+    QueueUrl: ENV.SQS_QUEUE_URL,
     MessageBody: JSON.stringify(payload),
     // Optional: group/dedupe only if FIFO queue
     // MessageGroupId: payload.documentId,

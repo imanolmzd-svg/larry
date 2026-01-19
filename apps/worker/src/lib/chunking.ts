@@ -1,3 +1,5 @@
+import { CHARS_PER_TOKEN } from "../config/constants.js";
+
 type Chunk = { text: string; startChar: number; endChar: number };
 
 export function chunkTextByTokens(
@@ -5,7 +7,7 @@ export function chunkTextByTokens(
   opts: { targetTokens: number; overlapTokens: number }
 ): Chunk[] {
   // MVP token approximation: ~4 chars per token (rough, ok for chunk sizing)
-  const charsPerToken = 4;
+  const charsPerToken = CHARS_PER_TOKEN;
   const targetChars = opts.targetTokens * charsPerToken;
   const overlapChars = opts.overlapTokens * charsPerToken;
 

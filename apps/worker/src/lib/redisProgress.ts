@@ -4,10 +4,9 @@ import {
   getRedisChannel,
   type DocumentStatusType,
 } from "@larry/shared";
+import { ENV } from "../config/env.js";
 
-const REDIS_URL = process.env.REDIS_URL;
-
-const redis = REDIS_URL ? new Redis(REDIS_URL) : null;
+const redis = ENV.REDIS_URL ? new Redis(ENV.REDIS_URL) : null;
 
 export async function publishDocumentStatus(
   userId: string,

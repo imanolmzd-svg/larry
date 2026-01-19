@@ -6,6 +6,7 @@ import { extractPdfTextWithPageMap } from "./lib/pdf.js";
 import { chunkTextByTokens } from "./lib/chunking.js";
 import { embedMany } from "./lib/embeddings.js";
 import { publishDocumentStatus } from "./lib/redisProgress.js";
+import { CHUNK_TARGET_TOKENS, CHUNK_OVERLAP_TOKENS } from "./config/constants.js";
 
 
 type Params = {
@@ -63,8 +64,8 @@ export async function ingestJob({ documentId, attemptId }: Params): Promise<void
 
   // 4) Chunk
   const chunks = chunkTextByTokens(fullText, {
-    targetTokens: 800,
-    overlapTokens: 120,
+    targetTokens: CHUNK_TARGET_TOKENS,
+    overlapTokens: CHUNK_OVERLAP_TOKENS,
   }).map((c, idx) => {
     const pages = pagesForSpan(pageSpans, c.startChar, c.endChar);
     return {

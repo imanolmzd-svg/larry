@@ -1,16 +1,12 @@
 import OpenAI from "openai";
+import { EMBEDDING_BATCH_SIZE } from "../config/constants.js";
+import { ENV } from "../config/env.js";
 
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-if (!OPENAI_API_KEY) {
-  throw new Error("Missing env var: OPENAI_API_KEY");
-}
-
-const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
-const MODEL = process.env.OPENAI_EMBEDDINGS_MODEL ?? "text-embedding-3-small";
+const openai = new OpenAI({ apiKey: ENV.OPENAI_API_KEY });
+const MODEL = ENV.OPENAI_EMBEDDINGS_MODEL;
 
 export async function embedMany(texts: string[]): Promise<number[][]> {
-  // Batch size: keep it conservative for MVP
-  const batchSize = 64;
+  const batchSize = EMBEDDING_BATCH_SIZE;
   const out: number[][] = [];
 
   for (let i = 0; i < texts.length; i += batchSize) {
