@@ -19,8 +19,9 @@ const envSchema = z.object({
   S3_ACCESS_KEY: z.string().optional(),
   S3_SECRET_KEY: z.string().optional(),
 
-  // SQS
-  SQS_QUEUE_URL: z.string().min(1, "SQS_QUEUE_URL is required"),
+  // SQS - Only required for local poller mode (index.ts)
+  // Lambda with SQS trigger (lambda.ts) does NOT need SQS_QUEUE_URL
+  SQS_QUEUE_URL: z.string().optional(),
   SQS_REGION: z.string().optional(),
   SQS_ENDPOINT: z.string().optional(),
   SQS_ACCESS_KEY_ID: z.string().optional(),
@@ -29,6 +30,9 @@ const envSchema = z.object({
   // OpenAI
   OPENAI_API_KEY: z.string().min(1, "OPENAI_API_KEY is required"),
   OPENAI_EMBEDDINGS_MODEL: z.string().default("text-embedding-3-small"),
+
+  // Debug
+  ENABLE_DEBUG_LOGS: z.string().optional().transform(val => val === "true"),
 });
 
 function validateEnv() {

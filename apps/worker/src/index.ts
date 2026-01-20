@@ -48,7 +48,7 @@ const sqs = new SQSClient({
  * Handle a single SQS message in local dev mode.
  * Processes the message and acknowledges it on success.
  */
-async function handleMessage(msg: Message): Promise<void> {
+async function handleMessage(msg: Message, queueUrl: string): Promise<void> {
   const receiptHandle = msg.ReceiptHandle;
   if (!receiptHandle) throw new Error("SQS message missing ReceiptHandle");
 
@@ -58,7 +58,7 @@ async function handleMessage(msg: Message): Promise<void> {
   // Ack SQS only after successful processing
   await sqs.send(
     new DeleteMessageCommand({
-      QueueUrl: ENV.SQS_QUEUE_URL,
+      QueueUrl: queueUrl,
       ReceiptHandle: receiptHandle,
     })
   );
@@ -69,6 +69,15 @@ async function handleMessage(msg: Message): Promise<void> {
  * Main polling loop for local development.
  */
 async function main(): Promise<void> {
+  // Validate that SQS_QUEUE_URL is set for poller mode
+  if (!ENV.SQS_QUEUE_URL) {
+    console.error("❌ SQS_QUEUE_URL is required for local poller mode");
+    console.error("   For Lambda with SQS trigger, use lambda.ts instead");
+    process.exit(1);
+  }
+
+  const queueUrl = ENV.SQS_QUEUE_URL; // Now guaranteed to be defined
+
   // Basic connectivity check
   await prisma.$connect();
   console.log("[worker] Connected to database, starting poll loop...");
@@ -78,7 +87,7 @@ async function main(): Promise<void> {
   for (;;) {
     const res = await sqs.send(
       new ReceiveMessageCommand({
-        QueueUrl: ENV.SQS_QUEUE_URL,
+        QueueUrl: queueUrl,
         MaxNumberOfMessages: SQS_MAX_MESSAGES,
         WaitTimeSeconds: SQS_WAIT_TIME_SECONDS,
         VisibilityTimeout: SQS_VISIBILITY_TIMEOUT_SECONDS,
@@ -90,7 +99,7 @@ async function main(): Promise<void> {
 
     for (const msg of messages) {
       try {
-        await handleMessage(msg);
+        await handleMessage(msg, queueUrl);
       } catch (err) {
         // Best effort: mark attempt/document failed (so UI reflects reality).
         // Leave message unacked so SQS retries (or DLQ later).

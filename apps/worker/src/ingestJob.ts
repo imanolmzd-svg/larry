@@ -7,6 +7,7 @@ import { chunkTextByTokens } from "./lib/chunking.js";
 import { embedMany } from "./lib/embeddings.js";
 import { publishDocumentStatus } from "./lib/redisProgress.js";
 import { CHUNK_TARGET_TOKENS, CHUNK_OVERLAP_TOKENS } from "./config/constants.js";
+import { debug, info, error } from "./lib/logger.js";
 
 
 type Params = {
@@ -15,7 +16,11 @@ type Params = {
 };
 
 export async function ingestJob({ documentId, attemptId }: Params): Promise<void> {
+  info("[ingestJob]", "Starting ingestion job", { documentId, attemptId });
+  
   // 1) Load document + attempt
+  debug("[ingestJob]", "Loading document and attempt from DB");
+  
   const [doc, attempt] = await Promise.all([
     prisma.document.findUnique({
       where: { id: documentId },
@@ -27,16 +32,42 @@ export async function ingestJob({ documentId, attemptId }: Params): Promise<void
     }),
   ]);
 
-  if (!doc) throw new Error(`Document not found: ${documentId}`);
-  if (!attempt) throw new Error(`Attempt not found: ${attemptId}`);
-  if (attempt.documentId !== documentId) throw new Error(`Attempt does not belong to document`);
+  if (!doc) {
+    error("[ingestJob]", "Document not found", { documentId });
+    throw new Error(`Document not found: ${documentId}`);
+  }
+  if (!attempt) {
+    error("[ingestJob]", "Attempt not found", { attemptId });
+    throw new Error(`Attempt not found: ${attemptId}`);
+  }
+  if (attempt.documentId !== documentId) {
+    error("[ingestJob]", "Attempt/document mismatch", {
+      attemptDocId: attempt.documentId,
+      expectedDocId: documentId,
+    });
+    throw new Error(`Attempt does not belong to document`);
+  }
+
+  debug("[ingestJob]", "Document and attempt loaded", {
+    filename: doc.filename,
+    mimeType: doc.mimeType,
+    storageKey: doc.storageKey,
+    attemptStatus: attempt.status,
+  });
 
   // Idempotency: terminal states are no-ops
-  if (attempt.status === DocumentIngestionAttemptStatus.READY) return;
-  if (attempt.status === DocumentIngestionAttemptStatus.FAILED) return;
+  if (attempt.status === DocumentIngestionAttemptStatus.READY) {
+    info("[ingestJob]", "Attempt already READY, skipping");
+    return;
+  }
+  if (attempt.status === DocumentIngestionAttemptStatus.FAILED) {
+    info("[ingestJob]", "Attempt already FAILED, skipping");
+    return;
+  }
 
   // For MVP: require PROCESSING here (main.ts claimed it)
   if (attempt.status !== DocumentIngestionAttemptStatus.PROCESSING) {
+    error("[ingestJob]", "Unexpected attempt status", { status: attempt.status });
     throw new Error(`Attempt status must be PROCESSING, got ${attempt.status}`);
   }
 
@@ -44,25 +75,40 @@ export async function ingestJob({ documentId, attemptId }: Params): Promise<void
   const mime = (doc.mimeType ?? "").toLowerCase();
   const name = (doc.filename ?? "").toLowerCase();
   const isPdf = mime === "application/pdf" || name.endsWith(".pdf");
+  
+  debug("[ingestJob]", "Checking file type", { mime, name, isPdf });
+  
   if (!isPdf) {
+    error("[ingestJob]", "Unsupported file type", { mimeType: doc.mimeType, filename: doc.filename });
     throw new Error(`Unsupported file type (PDF only). mimeType=${doc.mimeType} filename=${doc.filename}`);
   }
 
-  console.log(`[ingest] Starting file=${doc.filename ?? "unknown"}`);
+  info("[ingestJob]", "Starting PDF processing", { filename: doc.filename });
 
   // 2) Download from S3
+  debug("[ingestJob]", "Downloading file from S3", { storageKey: doc.storageKey });
   const pdfBuffer = await downloadToBuffer(doc.storageKey);
-  console.log(`[ingest] Downloaded ${Math.round(pdfBuffer.length / 1024)}KB`);
+  info("[ingestJob]", "File downloaded from S3", { sizeKB: Math.round(pdfBuffer.length / 1024) });
 
   // 3) Parse PDF to text + page map (for citations)
+  debug("[ingestJob]", "Extracting text from PDF");
   const { fullText, pageSpans } = await extractPdfTextWithPageMap(pdfBuffer);
-  console.log(`[ingest] Parsed ${pageSpans.length} pages, ${fullText.length} chars`);
+  info("[ingestJob]", "PDF text extracted", {
+    pages: pageSpans.length,
+    chars: fullText.length,
+  });
 
   if (fullText.length === 0) {
+    error("[ingestJob]", "PDF contains no extractable text");
     throw new Error("PDF contains no extractable text");
   }
 
   // 4) Chunk
+  debug("[ingestJob]", "Chunking text", {
+    targetTokens: CHUNK_TARGET_TOKENS,
+    overlapTokens: CHUNK_OVERLAP_TOKENS,
+  });
+  
   const chunks = chunkTextByTokens(fullText, {
     targetTokens: CHUNK_TARGET_TOKENS,
     overlapTokens: CHUNK_OVERLAP_TOKENS,
@@ -74,26 +120,37 @@ export async function ingestJob({ documentId, attemptId }: Params): Promise<void
       metadata: { pages },
     };
   });
-  console.log(`[ingest] Created ${chunks.length} chunks`);
+  
+  info("[ingestJob]", "Text chunked", { chunkCount: chunks.length });
 
   // 5) Embeddings
+  debug("[ingestJob]", "Generating embeddings for chunks");
   const vectors = await embedMany(chunks.map((c) => c.content));
-  console.log(`[ingest] Generated ${vectors.length} embeddings`);
+  info("[ingestJob]", "Embeddings generated", { vectorCount: vectors.length });
 
   if (vectors.length !== chunks.length) {
+    error("[ingestJob]", "Embedding count mismatch", {
+      vectors: vectors.length,
+      chunks: chunks.length,
+    });
     throw new Error(`Embedding count mismatch: vectors=${vectors.length} chunks=${chunks.length}`);
   }
 
   // 6) Persist (transaction)
+  debug("[ingestJob]", "Starting DB transaction to persist chunks");
+  
   await prisma.$transaction(async (tx) => {
     // Clean partial chunks for this attempt (retry-safe)
-    await tx.documentChunk.deleteMany({ where: { attemptId } });
+    debug("[ingestJob]", "Cleaning old chunks for retry safety");
+    const deleted = await tx.documentChunk.deleteMany({ where: { attemptId } });
+    debug("[ingestJob]", "Old chunks deleted", { count: deleted.count });
 
     // Insert chunks
-    // NOTE: for pgvector with Prisma Unsupported("vector"), you typically use raw SQL for the vector column.
-    // We'll insert metadata/content via Prisma and then update embeddings via raw SQL in a loop or batched.
-    // For MVP, do a simple loop (optimize later).
+    debug("[ingestJob]", "Inserting chunks into DB");
+    
     for (let i = 0; i < chunks.length; i++) {
+      debug("[ingestJob]", `Creating chunk ${i + 1}/${chunks.length}`);
+      
       const row = await tx.documentChunk.create({
         data: {
           documentId,
@@ -106,8 +163,11 @@ export async function ingestJob({ documentId, attemptId }: Params): Promise<void
         select: { id: true },
       });
 
-      // Store embedding vector via raw query. `vector` literal format: '[1,2,3]'::vector
-      // Ensure your pgvector extension is installed and Prisma datasource configured (it is).
+      // Store embedding vector via raw query
+      debug("[ingestJob]", `Updating embedding for chunk ${i + 1}/${chunks.length}`, {
+        chunkId: row.id,
+      });
+      
       const vecLiteral = `[${vectors[i]!.join(",")}]`;
       await tx.$executeRawUnsafe(
         `UPDATE "DocumentChunk" SET "embedding" = $1::vector WHERE "id" = $2`,
@@ -116,6 +176,8 @@ export async function ingestJob({ documentId, attemptId }: Params): Promise<void
       );
     }
 
+    debug("[ingestJob]", "Updating attempt status to READY");
+    
     await tx.documentIngestionAttempt.update({
       where: { id: attemptId },
       data: {
@@ -127,6 +189,8 @@ export async function ingestJob({ documentId, attemptId }: Params): Promise<void
       },
     });
 
+    debug("[ingestJob]", "Updating document status to READY");
+    
     await tx.document.update({
       where: { id: documentId },
       data: {
@@ -134,11 +198,14 @@ export async function ingestJob({ documentId, attemptId }: Params): Promise<void
       },
     });
   });
-  console.log(`[ingest] Persisted ${chunks.length} chunks to DB`);
+  
+  info("[ingestJob]", "Chunks persisted to DB", { chunkCount: chunks.length });
 
   // Publish READY status to Redis for real-time updates
+  debug("[ingestJob]", "Publishing READY status to Redis");
   await publishDocumentStatus(doc.userId, documentId, "READY", attemptId);
-  console.log(`[ingest] Complete doc=${documentId}`);
+  
+  info("[ingestJob]", "Ingestion job complete", { documentId, attemptId });
 }
 
 type PageSpan = { pageNumber: number; startChar: number; endChar: number };
