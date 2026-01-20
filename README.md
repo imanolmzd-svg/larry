@@ -3,6 +3,14 @@
 Ask questions to your documents.
 Always with sources. Or no answer.
 
+## Demo
+
+https://github.com/user-attachments/assets/demo.mkv
+
+> A video demonstration of Larry in action, showing document upload, processing, and intelligent question answering.
+
+---
+
 See /docs for product and technical documentation.
 
 
