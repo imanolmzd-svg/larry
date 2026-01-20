@@ -18,6 +18,9 @@ importers:
       prisma:
         specifier: ^7.2.0
         version: 7.2.0(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(typescript@5.9.3)
+      typescript:
+        specifier: ^5
+        version: 5.9.3
 
   apps/api:
     dependencies:

@@ -1,7 +1,7 @@
 // apps/worker/src/main.ts
 import "dotenv/config";
 import { prisma } from "@larry/db";
-import { DocumentIngestionAttemptStatus, DocumentStatus } from "@larry/db/src/generated/prisma/enums.js";
+import { DocumentIngestionAttemptStatus, DocumentStatus } from "@larry/db";
 import {
   SQSClient,
   ReceiveMessageCommand,

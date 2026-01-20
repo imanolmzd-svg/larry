@@ -5,6 +5,11 @@
   "scripts": {
     "predev": "pnpm --filter @larry/db generate",
     "dev": "tsx watch src/index.ts",
+
+    "prebuild": "pnpm --filter @larry/shared build && pnpm --filter @larry/db generate && pnpm --filter @larry/db build",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+
     "lint": "eslint .",
     "typecheck": "tsc --noEmit"
   },

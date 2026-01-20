@@ -6,11 +6,10 @@
     "module": "nodenext",
     "target": "ES2022",
     "moduleResolution": "nodenext",
-    "esModuleInterop": true,
+    "declarationMap": false,
     "sourceMap": false,
-    "noEmit": false,
-    "declarationMap": false
+    "esModuleInterop": true,
+    "noEmit": false
   },
   "include": ["src/**/*.ts"]
 }
-

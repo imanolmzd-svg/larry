@@ -4,7 +4,7 @@ import { prisma } from "@larry/db";
 import { randomUUID } from "node:crypto";
 import { presignPutObject } from "../../infra/s3/presignPut.js";
 import { S3_BUCKET_NAME } from "../../infra/s3/client.js";
-import { DocumentStatus } from "@larry/db/src/generated/prisma/enums.js";
+import { DocumentStatus } from "@larry/db";
 
 function buildS3Key(userId: string, filename?: string) {
   // Keep it opaque + stable; include userId for easy bucket browsing.

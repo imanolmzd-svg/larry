@@ -3,7 +3,14 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "pnpm exec tsc -p tsconfig.json"
   },
   "dependencies": {
     "zod": "^3"

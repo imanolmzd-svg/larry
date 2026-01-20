@@ -3,7 +3,7 @@ import type { AuthRequest } from "../../infra/middleware/auth.js";
 import { prisma } from "@larry/db";
 import { S3_BUCKET_NAME } from "../../infra/s3/client.js";
 import { headObject } from "../../infra/s3/head.js";
-import { DocumentIngestionAttemptStatus, DocumentStatus } from "@larry/db/src/generated/prisma/enums.js";
+import { DocumentIngestionAttemptStatus, DocumentStatus } from "@larry/db";
 import { enqueueIngestionMessage } from "../../infra/sqs.js";
 import { publishDocumentStatus } from "../../infra/redis/statusPublisher.js";
 

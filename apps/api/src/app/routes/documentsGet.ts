@@ -1,7 +1,7 @@
 import type { Response } from "express";
 import type { AuthRequest } from "../../infra/middleware/auth.js";
 import { prisma } from "@larry/db";
-import { DocumentStatus } from "@larry/db/src/generated/prisma/enums.js";
+import { DocumentStatus } from "@larry/db";
 
 export async function getDocuments(req: AuthRequest, res: Response) {
   const userId = req.userId!; // Guaranteed by middleware

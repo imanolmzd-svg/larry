@@ -1,6 +1,6 @@
 // apps/worker/src/ingestJob.ts
 import { prisma } from "@larry/db";
-import { DocumentIngestionAttemptStatus, DocumentStatus } from "@larry/db/src/generated/prisma/enums.js";
+import { DocumentIngestionAttemptStatus, DocumentStatus } from "@larry/db";
 import { downloadToBuffer } from "./lib/s3.js";
 import { extractPdfTextWithPageMap } from "./lib/pdf.js";
 import { chunkTextByTokens } from "./lib/chunking.js";

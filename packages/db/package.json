@@ -2,10 +2,17 @@
   "name": "@larry/db",
   "version": "0.0.0",
   "private": true,
-  "main": "src/prisma.ts",
-  "types": "src/prisma.ts",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
   "scripts": {
-    "generate": "prisma generate --schema=../../prisma/schema.prisma"
+    "generate": "prisma generate --schema=../../prisma/schema.prisma",
+    "build": "pnpm exec tsc -p tsconfig.json"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.2.0",
