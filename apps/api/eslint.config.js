@@ -6,11 +6,6 @@ export default [
   ...tseslint.configs.recommended,
   {
     files: ["**/*.ts"],
-    languageOptions: {
-      parserOptions: {
-        project: "./tsconfig.json",
-      },
-    },
     rules: {
       // adjust if something specific bothers you
     },
