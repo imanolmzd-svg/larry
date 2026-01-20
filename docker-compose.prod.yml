@@ -1,0 +1,23 @@
+
+services:
+  api:
+    image: larry-api
+    restart: unless-stopped
+    env_file:
+      - apps/api/.env
+    ports:
+      - "4000:4000"
+    networks:
+      - larry
+
+  worker:
+    image: larry-worker
+    restart: unless-stopped
+    env_file:
+      - apps/worker/.env
+    networks:
+      - larry
+
+networks:
+  larry:
+    driver: bridge
