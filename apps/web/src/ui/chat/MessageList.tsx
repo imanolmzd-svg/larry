@@ -1,4 +1,5 @@
 import type { ChatMessage } from "@/shared/types";
+import Image from "next/image";
 import { ChatSources } from "./ChatSources";
 
 type MessageListProps = {
@@ -19,12 +20,12 @@ export function MessageList({ messages, loading }: MessageListProps) {
           gap: 16,
         }}
       >
-        <img
+        <Image
           src="/larry-icon.png"
           alt="Larry"
+          width={48}
+          height={48}
           style={{
-            width: 48,
-            height: 48,
             objectFit: "contain",
             opacity: 0.8
           }}
