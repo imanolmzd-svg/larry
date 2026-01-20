@@ -1,6 +1,7 @@
 // apps/worker/src/main.ts
 import "dotenv/config";
 import { prisma } from "@larry/db";
+
 import {
   SQSClient,
   ReceiveMessageCommand,
@@ -17,6 +18,7 @@ import {
   MAX_ERROR_MESSAGE_LENGTH,
 } from "./config/constants.js";
 import { ENV } from "./config/env.js";
+
 
 type IngestMessageBody = {
   documentId: string;

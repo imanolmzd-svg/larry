@@ -7,7 +7,6 @@ import { embedMany } from "./lib/embeddings.js";
 import { publishDocumentStatus } from "./lib/redisProgress.js";
 import { CHUNK_TARGET_TOKENS, CHUNK_OVERLAP_TOKENS } from "./config/constants.js";
 
-
 type Params = {
   documentId: string;
   attemptId: string;

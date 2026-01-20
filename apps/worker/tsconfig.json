@@ -9,7 +9,12 @@
     "esModuleInterop": true,
     "sourceMap": false,
     "noEmit": false,
-    "declarationMap": false
+    "declarationMap": false,
+    "baseUrl": ".",
+    "paths": {
+      "@larry/db": ["../packages/db/src/index.ts"],
+      "@larry/shared": ["../packages/shared/src/index.ts"]
+    }
   },
   "include": ["src/**/*.ts"]
 }
