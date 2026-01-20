@@ -10,7 +10,10 @@ https://github.com/user-attachments/assets/92827607-3d9f-4d06-bf5b-466596ed47e1
 
 ---
 
-See /docs for product and technical documentation.
+## Documentation
+
+- **[System Workflows](docs/architecture/workflows.md)** - Detailed diagrams of document upload, worker processing, and chat/query flows
+- **Product & Technical Docs** - See `/docs` directory for additional documentation
 
 
 ## Environment variables
