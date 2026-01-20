@@ -1,7 +1,6 @@
 // apps/worker/src/main.ts
 import "dotenv/config";
 import { prisma } from "@larry/db";
-import { DocumentIngestionAttemptStatus, DocumentStatus } from "@larry/db";
 import {
   SQSClient,
   ReceiveMessageCommand,
@@ -66,7 +65,7 @@ async function markFailedBestEffort(params: {
 
       if (!attempt) return null;
       if (attempt.documentId !== documentId) return null;
-      if (attempt.status === DocumentIngestionAttemptStatus.READY) return null;
+      if (attempt.status === "READY") return null;
 
       // Get userId for publishing
       const doc = await tx.document.findUnique({
@@ -77,7 +76,7 @@ async function markFailedBestEffort(params: {
       await tx.documentIngestionAttempt.update({
         where: { id: attemptId },
         data: {
-          status: DocumentIngestionAttemptStatus.FAILED,
+          status: "FAILED",
           errorCode,
           errorMessage: errorMessage.slice(0, MAX_ERROR_MESSAGE_LENGTH),
           finishedAt: new Date(),
@@ -87,7 +86,7 @@ async function markFailedBestEffort(params: {
       await tx.document.update({
         where: { id: documentId },
         data: {
-          status: DocumentStatus.FAILED,
+          status: "FAILED",
         },
       });
 
@@ -140,18 +139,18 @@ async function handleMessage(msg: Message) {
 
     // Idempotency: if already terminal, skip processing
     if (
-      attempt.status === DocumentIngestionAttemptStatus.READY ||
-      attempt.status === DocumentIngestionAttemptStatus.FAILED
+      attempt.status === "READY" ||
+      attempt.status === "FAILED"
     ) {
       return { shouldProcess: false, userId: doc.userId };
     }
 
     // Only promote INITIATED -> PROCESSING
-    if (attempt.status === DocumentIngestionAttemptStatus.INITIATED) {
+    if (attempt.status === "INITIATED") {
       await tx.documentIngestionAttempt.update({
         where: { id: attemptId },
         data: {
-          status: DocumentIngestionAttemptStatus.PROCESSING,
+          status: "PROCESSING",
           startedAt: attempt.startedAt ?? new Date(),
         },
       });
@@ -161,7 +160,7 @@ async function handleMessage(msg: Message) {
     await tx.document.update({
       where: { id: documentId },
       data: {
-        status: DocumentStatus.PROCESSING,
+        status: "PROCESSING",
       },
     });
 

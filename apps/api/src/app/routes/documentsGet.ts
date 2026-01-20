@@ -1,7 +1,6 @@
 import type { Response } from "express";
 import type { AuthRequest } from "../../infra/middleware/auth.js";
 import { prisma } from "@larry/db";
-import { DocumentStatus } from "@larry/db";
 
 export async function getDocuments(req: AuthRequest, res: Response) {
   const userId = req.userId!; // Guaranteed by middleware
@@ -13,11 +12,11 @@ export async function getDocuments(req: AuthRequest, res: Response) {
         userId,
         status: {
           in: [
-            DocumentStatus.CREATED,
-            DocumentStatus.UPLOADED,
-            DocumentStatus.PROCESSING,
-            DocumentStatus.READY,
-            DocumentStatus.FAILED,
+            "CREATED",
+            "UPLOADED",
+            "PROCESSING",
+            "READY",
+            "FAILED",
           ],
         },
       },

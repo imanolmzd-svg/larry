@@ -3,7 +3,6 @@ import type { AuthRequest } from "../../infra/middleware/auth.js";
 import { prisma } from "@larry/db";
 import { S3_BUCKET_NAME } from "../../infra/s3/client.js";
 import { headObject } from "../../infra/s3/head.js";
-import { DocumentIngestionAttemptStatus, DocumentStatus } from "@larry/db";
 import { enqueueIngestionMessage } from "../../infra/sqs.js";
 import { publishDocumentStatus } from "../../infra/redis/statusPublisher.js";
 
@@ -25,9 +24,9 @@ export async function postDocumentsComplete(req: AuthRequest, res: Response) {
   if (!doc) return res.status(404).json({ error: "Document not found" });
 
   // Guard: only allow complete from uploading/pending states
-  if (doc.status !== DocumentStatus.CREATED && doc.status !== DocumentStatus.UPLOADED) {
+  if (doc.status !== "CREATED" && doc.status !== "UPLOADED") {
     // Idempotent-ish: if already processing/ready, just return ok
-    if (doc.status === DocumentStatus.PROCESSING || doc.status === DocumentStatus.READY) return res.json({ ok: true });
+    if (doc.status === "PROCESSING" || doc.status === "READY") return res.json({ ok: true });
     return res.status(409).json({ error: `Invalid status: ${doc.status}` });
   }
 
@@ -43,14 +42,14 @@ export async function postDocumentsComplete(req: AuthRequest, res: Response) {
     const attempt = await tx.documentIngestionAttempt.create({
       data: {
         documentId: doc.id,
-        status: DocumentIngestionAttemptStatus.INITIATED,
+        status: "INITIATED",
       },
       select: { id: true },
     });
 
     await tx.document.update({
       where: { id: doc.id },
-      data: { status: DocumentStatus.PROCESSING },
+      data: { status: "PROCESSING" },
       select: { id: true },
     });
 

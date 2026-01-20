@@ -4,7 +4,6 @@ import { prisma } from "@larry/db";
 import { randomUUID } from "node:crypto";
 import { presignPutObject } from "../../infra/s3/presignPut.js";
 import { S3_BUCKET_NAME } from "../../infra/s3/client.js";
-import { DocumentStatus } from "@larry/db";
 
 function buildS3Key(userId: string, filename?: string) {
   // Keep it opaque + stable; include userId for easy bucket browsing.
@@ -54,7 +53,7 @@ export async function postDocumentsInit(req: AuthRequest, res: Response) {
   const document = await prisma.document.create({
     data: {
       userId,
-      status: DocumentStatus.CREATED,
+      status: "CREATED",
       filename: filename ?? null,
       mimeType: mimeType ?? null,
       size: typeof sizeBytes === "number" ? BigInt(sizeBytes) : null,

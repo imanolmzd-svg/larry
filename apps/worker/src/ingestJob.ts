@@ -1,6 +1,5 @@
 // apps/worker/src/ingestJob.ts
 import { prisma } from "@larry/db";
-import { DocumentIngestionAttemptStatus, DocumentStatus } from "@larry/db";
 import { downloadToBuffer } from "./lib/s3.js";
 import { extractPdfTextWithPageMap } from "./lib/pdf.js";
 import { chunkTextByTokens } from "./lib/chunking.js";
@@ -32,11 +31,11 @@ export async function ingestJob({ documentId, attemptId }: Params): Promise<void
   if (attempt.documentId !== documentId) throw new Error(`Attempt does not belong to document`);
 
   // Idempotency: terminal states are no-ops
-  if (attempt.status === DocumentIngestionAttemptStatus.READY) return;
-  if (attempt.status === DocumentIngestionAttemptStatus.FAILED) return;
+  if (attempt.status === "READY") return;
+  if (attempt.status === "FAILED") return;
 
   // For MVP: require PROCESSING here (main.ts claimed it)
-  if (attempt.status !== DocumentIngestionAttemptStatus.PROCESSING) {
+  if (attempt.status !== "PROCESSING") {
     throw new Error(`Attempt status must be PROCESSING, got ${attempt.status}`);
   }
 
@@ -119,7 +118,7 @@ export async function ingestJob({ documentId, attemptId }: Params): Promise<void
     await tx.documentIngestionAttempt.update({
       where: { id: attemptId },
       data: {
-        status: DocumentIngestionAttemptStatus.READY,
+        status: "READY",
         progress: 100,
         finishedAt: new Date(),
         errorCode: null,
@@ -130,7 +129,7 @@ export async function ingestJob({ documentId, attemptId }: Params): Promise<void
     await tx.document.update({
       where: { id: documentId },
       data: {
-        status: DocumentStatus.READY,
+        status: "READY",
       },
     });
   });
