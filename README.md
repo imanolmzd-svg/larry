@@ -5,9 +5,8 @@ Always with sources. Or no answer.
 
 ## Demo
 
-https://github.com/imanolmzd-svg/larry/raw/main/docs/assets/demo.mp4
 
-> A video demonstration of Larry in action, showing document upload, processing, and intelligent question answering.
+https://github.com/user-attachments/assets/92827607-3d9f-4d06-bf5b-466596ed47e1
 
 ---
 
