@@ -11,6 +11,8 @@ import { DEFAULT_API_URL } from "./constants";
  * These are embedded at build time by Next.js.
  */
 export const ENV = {
+  // Environment
+  NODE_ENV: process.env.NEXT_PUBLIC_NODE_ENV || "development",
   /** API base URL for all backend requests */
   API_URL: process.env.NEXT_PUBLIC_API_URL || DEFAULT_API_URL,
 } as const;

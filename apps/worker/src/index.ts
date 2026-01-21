@@ -25,14 +25,22 @@ type IngestMessageBody = {
   attemptId: string;
 };
 
+
+const isProd = ENV.NODE_ENV === "production";
+
 const sqs = new SQSClient({
   region: ENV.SQS_REGION ?? SQS_DEFAULT_REGION,
-  endpoint: ENV.SQS_ENDPOINT,
-  credentials: {
-    accessKeyId: ENV.SQS_ACCESS_KEY_ID,
-    secretAccessKey: ENV.SQS_SECRET_ACCESS_KEY,
-  },
+  ...(ENV.SQS_ENDPOINT ? { endpoint: ENV.SQS_ENDPOINT } : {}),
+  ...(isProd
+    ? {} // IAM Role
+    : {
+      credentials: {
+        accessKeyId: ENV.SQS_ACCESS_KEY_ID!,
+        secretAccessKey: ENV.SQS_SECRET_ACCESS_KEY!,
+      },
+    }),
 });
+
 
 function parseBody(raw: string | undefined): IngestMessageBody {
   if (!raw) throw new Error("SQS message has empty Body");

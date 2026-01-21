@@ -6,6 +6,10 @@
 import { z } from "zod";
 
 const envSchema = z.object({
+
+  // Environment
+  NODE_ENV: z.enum(["development", "production"]).default("development"),
+
   // Database
   DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
 

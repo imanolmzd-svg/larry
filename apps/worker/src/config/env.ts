@@ -6,6 +6,10 @@
 import { z } from "zod";
 
 const envSchema = z.object({
+
+  // Environment
+  NODE_ENV: z.enum(["development", "production"]).default("development"),
+
   // Redis (optional - status updates disabled if not set)
   REDIS_URL: z.string().optional(),
 
