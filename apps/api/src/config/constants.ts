@@ -3,6 +3,8 @@
  * Centralized configuration values to avoid magic numbers throughout the codebase.
  */
 
+import { ENV } from "./env.js";
+
 // =============================================================================
 // Server Configuration
 // =============================================================================
@@ -13,8 +15,14 @@ export const SERVER_PORT = 4000;
 /** Host the API server binds to */
 export const SERVER_HOST = "0.0.0.0";
 
-/** Allowed CORS origin for web client */
-export const CORS_ORIGIN = "http://localhost:3000";
+/** Allowed CORS origins for web client */
+export const CORS_ORIGIN = (() => {
+  const origins = ["http://localhost:3000"];
+  if (ENV.WEB_URL) {
+    origins.push(ENV.WEB_URL);
+  }
+  return origins;
+})();
 
 // =============================================================================
 // Authentication

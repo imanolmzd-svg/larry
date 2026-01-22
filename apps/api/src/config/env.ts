@@ -38,6 +38,9 @@ const envSchema = z.object({
 
   // Auth
   JWT_SECRET: z.string().default("your-secret-key-change-in-production"),
+
+  // CORS
+  WEB_URL: z.string().optional(),
 });
 
 function validateEnv() {
