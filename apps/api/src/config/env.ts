@@ -17,6 +17,7 @@ const envSchema = z.object({
   REDIS_URL: z.string().optional(),
 
   // S3/MinIO
+  S3_PROVIDER: z.enum(["aws", "minio"]).default("minio"),
   S3_BUCKET: z.string().min(1, "S3_BUCKET is required"),
   S3_REGION: z.string().default("us-east-1"),
   S3_PUBLIC_ENDPOINT: z.string().optional(),
