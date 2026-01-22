@@ -90,7 +90,7 @@ export default function ChatPage() {
                   ? "var(--warning-text)"
                   : "var(--success-text)"
             }}>
-              {limits.documents.used}/{limits.documents.limit}
+              (max 10)
             </span>
           )}
         </h1>
