@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useRouter } from "next/navigation";
+import { ENV } from "@/config/env";
 
 type User = {
   id: string;
@@ -44,7 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   /* eslint-enable */
 
   const login = async (email: string, password: string) => {
-    const response = await fetch("http://localhost:4000/auth/login", {
+    const response = await fetch(`${ENV.API_URL}/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
