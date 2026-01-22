@@ -1,6 +1,9 @@
 
 services:
   api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
     image: larry-api
     restart: unless-stopped
     env_file:
@@ -11,6 +14,9 @@ services:
       - larry
 
   worker:
+    build:
+      context: .
+      dockerfile: apps/worker/Dockerfile
     image: larry-worker
     restart: unless-stopped
     env_file:

@@ -42,6 +42,11 @@ COPY packages/shared/package.json packages/shared/package.json
 COPY packages/db packages/db
 COPY packages/shared packages/shared
 
+# Add these:
+COPY --from=build /repo/packages/db/dist ./packages/db/dist
+COPY --from=build /repo/packages/shared/dist ./packages/shared/dist
+COPY prisma prisma
+
 # Install production deps INTO apps/worker
 RUN pnpm -C apps/worker install --prod --frozen-lockfile
 
