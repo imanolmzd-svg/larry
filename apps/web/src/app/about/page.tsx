@@ -78,13 +78,100 @@ export default function AboutPage() {
         <h2 style={{ fontSize: 20, fontWeight: 700, color: "var(--color-text-primary)", marginBottom: 12 }}>
           Technologies
         </h2>
-        <p style={{ fontSize: 16, color: "var(--color-text-secondary)", lineHeight: 1.6 }}>
-          Built with Next.js, TypeScript, Node.js, PostgreSQL with pgvector, OpenAI embeddings, Redis, S3, 
-          SQS, and WebSockets for real-time updates.
+        <p style={{ fontSize: 16, color: "var(--color-text-secondary)", marginBottom: 24, lineHeight: 1.6 }}>
+          Larry uses S3 storage, a message queue, and a worker to process PDFs into vector embeddings. 
+          Questions are answered using vector search and an external LLM.
         </p>
-        <br />
+
+        {/* Frontend Table */}
+        <table style={{ 
+          width: "100%", 
+          borderCollapse: "collapse", 
+          marginBottom: 24,
+          fontSize: 15,
+          color: "var(--color-text-secondary)"
+        }}>
+          <thead>
+            <tr style={{ borderBottom: "2px solid var(--card-border)" }}>
+              <th style={{ textAlign: "left", padding: "12px 8px", fontWeight: 600, color: "var(--color-text-primary)", width: "33.33%" }}>
+                Frontend
+              </th>
+              <th style={{ textAlign: "left", padding: "12px 8px", fontWeight: 600, color: "var(--color-text-primary)", width: "33.33%" }}>
+                Dev
+              </th>
+              <th style={{ textAlign: "left", padding: "12px 8px", fontWeight: 600, color: "var(--color-text-primary)", width: "33.33%" }}>
+                Prod
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style={{ borderBottom: "1px solid var(--card-border)" }}>
+              <td style={{ padding: "12px 8px", width: "33.33%" }}>Web Application</td>
+              <td style={{ padding: "12px 8px", width: "33.33%" }}>Next.js + TypeScript + pnpm</td>
+              <td style={{ padding: "12px 8px", width: "33.33%" }}>Vercel</td>
+            </tr>
+          </tbody>
+        </table>
+
+        {/* Backend Table */}
+        <table style={{ 
+          width: "100%", 
+          borderCollapse: "collapse", 
+          marginBottom: 24,
+          fontSize: 15,
+          color: "var(--color-text-secondary)"
+        }}>
+          <thead>
+            <tr style={{ borderBottom: "2px solid var(--card-border)" }}>
+              <th style={{ textAlign: "left", padding: "12px 8px", fontWeight: 600, color: "var(--color-text-primary)", width: "33.33%" }}>
+                Backend
+              </th>
+              <th style={{ textAlign: "left", padding: "12px 8px", fontWeight: 600, color: "var(--color-text-primary)", width: "33.33%" }}>
+                Dev
+              </th>
+              <th style={{ textAlign: "left", padding: "12px 8px", fontWeight: 600, color: "var(--color-text-primary)", width: "33.33%" }}>
+                Prod
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style={{ borderBottom: "1px solid var(--card-border)" }}>
+              <td style={{ padding: "12px 8px", width: "33.33%" }}>API Server</td>
+              <td style={{ padding: "12px 8px", width: "33.33%" }}>Node.js + TypeScript + pnpm</td>
+              <td style={{ padding: "12px 8px", width: "33.33%" }}>AWS EC2 (Docker)</td>
+            </tr>
+            <tr style={{ borderBottom: "1px solid var(--card-border)" }}>
+              <td style={{ padding: "12px 8px", width: "33.33%" }}>File Storage</td>
+              <td style={{ padding: "12px 8px", width: "33.33%" }}>MinIO</td>
+              <td style={{ padding: "12px 8px", width: "33.33%" }}>AWS S3</td>
+            </tr>
+            <tr style={{ borderBottom: "1px solid var(--card-border)" }}>
+              <td style={{ padding: "12px 8px", width: "33.33%" }}>Message Queue</td>
+              <td style={{ padding: "12px 8px", width: "33.33%" }}>LocalStack SQS</td>
+              <td style={{ padding: "12px 8px", width: "33.33%" }}>AWS SQS</td>
+            </tr>
+            <tr style={{ borderBottom: "1px solid var(--card-border)" }}>
+              <td style={{ padding: "12px 8px", width: "33.33%" }}>Background Worker</td>
+              <td style={{ padding: "12px 8px", width: "33.33%" }}>Node.js + TypeScript + pnpm</td>
+              <td style={{ padding: "12px 8px", width: "33.33%" }}>AWS EC2 (Docker)</td>
+            </tr>
+            <tr style={{ borderBottom: "1px solid var(--card-border)" }}>
+              <td style={{ padding: "12px 8px", width: "33.33%" }}>Real-time Updates</td>
+              <td style={{ padding: "12px 8px", width: "33.33%" }}>Redis</td>
+              <td style={{ padding: "12px 8px", width: "33.33%" }}>Upstash Redis</td>
+            </tr>
+            <tr style={{ borderBottom: "1px solid var(--card-border)" }}>
+              <td style={{ padding: "12px 8px", width: "33.33%" }}>Database</td>
+              <td style={{ padding: "12px 8px", width: "33.33%" }}>PostgreSQL + pgvector</td>
+              <td style={{ padding: "12px 8px", width: "33.33%" }}>NeonDB + pgvector</td>
+            </tr>
+          </tbody>
+        </table>
+
+        {/* Additional Tools */}
         <p style={{ fontSize: 16, color: "var(--color-text-secondary)", lineHeight: 1.6 }}>
-          Deployed on AWS (backend) and Vercel (frontend).
+          Additional tools: Prisma (ORM), WebSockets, 
+          <strong>OpenAI text-embedding-3-small</strong>, and <strong>OpenAI gpt-4o-mini</strong>.
         </p>
       </section>
 

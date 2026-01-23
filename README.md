@@ -22,7 +22,7 @@ Larry processes PDF documents and answers questions based on their content, alwa
 **Infrastructure:**
 - **PostgreSQL** (+ pgvector) - Data storage and vector similarity search
 - **Redis** - Caching and real-time progress updates
-- **S3/MinIO** - File storage for uploaded PDFs
+- **MinIO/S3** - File storage for uploaded PDFs
 - **LocalStack / AWS SQS** - Message queue for async document processing
 - **OpenAI API** - Text embeddings and chat completions
 
