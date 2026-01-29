@@ -9,10 +9,13 @@
       "default": "./dist/index.js"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "generate": "prisma generate --schema=../../prisma/schema.prisma",
-    "build": "pnpm exec tsc -p tsconfig.json"
+    "build": "pnpm exec tsc -p tsconfig.json",
+    "test": "vitest run"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.2.0",
@@ -20,6 +23,7 @@
     "pg": "^8.17.1"
   },
   "devDependencies": {
-    "@types/pg": "^8"
+    "@types/pg": "^8",
+    "vitest": "^4.0.18"
   }
 }

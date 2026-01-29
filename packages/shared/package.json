@@ -8,14 +8,18 @@
       "default": "./dist/index.js"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "build": "pnpm exec tsc -p tsconfig.json"
+    "build": "pnpm exec tsc -p tsconfig.json",
+    "test": "vitest run"
   },
   "dependencies": {
     "zod": "^3"
   },
   "devDependencies": {
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.0.18"
   }
 }

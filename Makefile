@@ -1,4 +1,4 @@
-.PHONY: dev infra db redis minio down reset logs migrate prisma-validate install generate setup sqs sqs-create
+.PHONY: dev infra db redis minio down reset logs migrate prisma-validate install generate setup sqs sqs-create test checks
 
 dev: infra
 	pnpm dev
@@ -45,5 +45,9 @@ generate:
 checks:
 	pnpm -r lint
 	pnpm -r typecheck
+	pnpm -r test
+
+test:
+	pnpm -r test
 
 setup: infra install generate prisma-validate migrate sqs-create
