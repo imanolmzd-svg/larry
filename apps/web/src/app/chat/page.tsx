@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/shared/auth";
 import { DocumentUpload } from "@/ui/documents/DocumentUpload";
 import { ChatWindow } from "@/ui/chat/ChatWindow";
-import { getUserLimits } from "@/shared/api";
+import { getUserLimits, AuthError } from "@/shared/api";
 import type { UserLimits } from "@/shared/types";
 
 export default function ChatPage() {
@@ -23,9 +23,15 @@ export default function ChatPage() {
     if (user) {
       getUserLimits()
         .then(setLimits)
-        .catch((err) => console.error("Failed to fetch limits:", err));
+        .catch((err) => {
+          if (err instanceof AuthError) {
+            router.push("/login");
+            return;
+          }
+          console.error("Failed to fetch limits:", err);
+        });
     }
-  }, [user]);
+  }, [user, router]);
 
   if (isLoading) {
     return <div style={{ padding: "40px 16px", textAlign: "center" }}>Loading...</div>;
@@ -38,7 +44,13 @@ export default function ChatPage() {
   const refreshLimits = () => {
     getUserLimits()
       .then(setLimits)
-      .catch((err) => console.error("Failed to refresh limits:", err));
+      .catch((err) => {
+        if (err instanceof AuthError) {
+          router.push("/login");
+          return;
+        }
+        console.error("Failed to refresh limits:", err);
+      });
   };
 
   return (

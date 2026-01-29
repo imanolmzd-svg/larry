@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import type { ChatMessage, UserLimits } from "@/shared/types";
-import { askQuestion } from "@/shared/api";
+import { askQuestion, AuthError } from "@/shared/api";
 import { MessageList } from "./MessageList";
 import { ChatInput } from "./ChatInput";
 
@@ -12,6 +13,7 @@ type ChatWindowProps = {
 };
 
 export function ChatWindow({ limits, onQuestionAsked }: ChatWindowProps) {
+  const router = useRouter();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -42,6 +44,10 @@ export function ChatWindow({ limits, onQuestionAsked }: ChatWindowProps) {
       // Refresh limits after successful question
       onQuestionAsked?.();
     } catch (err) {
+      if (err instanceof AuthError) {
+        router.push("/login");
+        return;
+      }
       const errorMsg = err instanceof Error ? err.message : "Unknown error";
       setError(errorMsg);
     } finally {

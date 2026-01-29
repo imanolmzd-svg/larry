@@ -1,10 +1,12 @@
 "use client";
 
 import React, { useRef, useState, useEffect, useCallback } from "react";
-import { apiPost, getDocuments, deleteDocument, getUserLimits } from "@/shared/api";
+import { useRouter } from "next/navigation";
+import { apiPost, getDocuments, deleteDocument, getUserLimits, AuthError } from "@/shared/api";
 import type { DocumentListItem, UserLimits } from "@/shared/types";
 import { connectWebSocket, subscribeToStatusChanges, isConnected, type DocumentStatusEvent } from "@/shared/ws";
 import { DOCUMENT_POLL_INTERVAL_MS } from "@/config/constants";
+import { getAuthToken } from "@/shared/authStorage";
 
 type InitRes = {
   documentId: string;
@@ -26,6 +28,7 @@ function _formatBytes(n: number): string {
 }
 
 export function DocumentUpload({ onUploadSuccess }: DocumentUploadProps = {}) {
+  const router = useRouter();
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [documents, setDocuments] = useState<DocumentListItem[]>([]);
   const documentsRef = useRef<DocumentListItem[]>([]);
@@ -49,7 +52,13 @@ export function DocumentUpload({ onUploadSuccess }: DocumentUploadProps = {}) {
         // Document not in list - refetch to get it
         getDocuments()
           .then(setDocuments)
-          .catch((err) => console.error("Failed to refetch documents:", err));
+          .catch((err) => {
+            if (err instanceof AuthError) {
+              router.push("/login");
+              return;
+            }
+            console.error("Failed to refetch documents:", err);
+          });
         return prevDocs;
       }
 
@@ -61,7 +70,7 @@ export function DocumentUpload({ onUploadSuccess }: DocumentUploadProps = {}) {
       };
       return updatedDocs;
     });
-  }, []);
+  }, [router]);
 
   // Fetch documents and limits on mount, and connect WebSocket
   useEffect(() => {
@@ -71,6 +80,10 @@ export function DocumentUpload({ onUploadSuccess }: DocumentUploadProps = {}) {
         setLimits(lims);
       })
       .catch((err) => {
+        if (err instanceof AuthError) {
+          router.push("/login");
+          return;
+        }
         console.error("Failed to fetch data:", err);
       })
       .finally(() => {
@@ -78,7 +91,7 @@ export function DocumentUpload({ onUploadSuccess }: DocumentUploadProps = {}) {
       });
 
     // Connect WebSocket and subscribe to status changes
-    const token = localStorage.getItem("auth_token");
+    const token = getAuthToken();
     let unsubscribe: (() => void) | undefined;
     if (token) {
       connectWebSocket(token);
@@ -98,6 +111,10 @@ export function DocumentUpload({ onUploadSuccess }: DocumentUploadProps = {}) {
           const docs = await getDocuments();
           setDocuments(docs);
         } catch (err) {
+          if (err instanceof AuthError) {
+            router.push("/login");
+            return;
+          }
           console.error("Polling failed:", err);
         }
       }
@@ -107,7 +124,7 @@ export function DocumentUpload({ onUploadSuccess }: DocumentUploadProps = {}) {
       unsubscribe?.();
       clearInterval(pollInterval);
     };
-  }, [handleStatusChange]);
+  }, [handleStatusChange, router]);
 
   const onPickClick = () => inputRef.current?.click();
 
@@ -165,6 +182,10 @@ export function DocumentUpload({ onUploadSuccess }: DocumentUploadProps = {}) {
         })
         .catch((err) => console.error("Failed to refresh data:", err));
     } catch (err) {
+      if (err instanceof AuthError) {
+        router.push("/login");
+        return;
+      }
       const message = err instanceof Error ? err.message : "Unknown error";
       alert(`Upload failed: ${message}`);
     } finally {
@@ -184,6 +205,10 @@ export function DocumentUpload({ onUploadSuccess }: DocumentUploadProps = {}) {
       const updatedDocs = await getDocuments();
       setDocuments(updatedDocs);
     } catch (err) {
+      if (err instanceof AuthError) {
+        router.push("/login");
+        return;
+      }
       const message = err instanceof Error ? err.message : "Unknown error";
       alert(`Failed to delete document: ${message}`);
     } finally {

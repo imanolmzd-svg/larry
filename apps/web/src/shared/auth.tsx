@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { ENV } from "@/config/env";
+import { clearStoredAuth, getStoredAuth, setStoredAuth } from "@/shared/authStorage";
 
 type User = {
   id: string;
@@ -31,12 +32,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   /* eslint-disable */
   useEffect(() => {
     if (!isInitialized) {
-      const storedToken = localStorage.getItem("auth_token");
-      const storedUser = localStorage.getItem("auth_user");
-
-      if (storedToken && storedUser) {
-        setToken(storedToken);
-        setUser(JSON.parse(storedUser));
+      const stored = getStoredAuth();
+      if (stored) {
+        setToken(stored.token);
+        setUser(stored.user);
       }
       setIsLoading(false);
       setIsInitialized(true);
@@ -57,8 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const data = await response.json();
 
-    localStorage.setItem("auth_token", data.token);
-    localStorage.setItem("auth_user", JSON.stringify(data.user));
+    setStoredAuth(data.token, data.user);
 
     setToken(data.token);
     setUser(data.user);
@@ -67,8 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
-    localStorage.removeItem("auth_token");
-    localStorage.removeItem("auth_user");
+    clearStoredAuth();
     setToken(null);
     setUser(null);
     router.push("/");

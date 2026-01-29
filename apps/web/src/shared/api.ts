@@ -1,8 +1,24 @@
 import type { ChatAskResponse, DocumentListItem, UserLimits } from "./types";
 import { ENV } from "@/config/env";
+import { getAuthToken } from "@/shared/authStorage";
+
+export class AuthError extends Error {
+  constructor(message = "UNAUTHORIZED") {
+    super(message);
+    this.name = "AuthError";
+  }
+}
+
+async function throwForResponse(res: Response): Promise<never> {
+  if (res.status === 401) {
+    throw new AuthError();
+  }
+  const text = await res.text().catch(() => "");
+  throw new Error(text || `HTTP ${res.status}`);
+}
 
 export async function apiGet<TRes>(path: string): Promise<TRes> {
-  const token = localStorage.getItem("auth_token");
+  const token = getAuthToken();
 
   const headers: Record<string, string> = {};
 
@@ -16,14 +32,7 @@ export async function apiGet<TRes>(path: string): Promise<TRes> {
   });
 
   if (!res.ok) {
-    if (res.status === 401) {
-      // Token expired or invalid
-      localStorage.removeItem("auth_token");
-      localStorage.removeItem("auth_user");
-      window.location.href = "/login";
-    }
-    const text = await res.text().catch(() => "");
-    throw new Error(text || `HTTP ${res.status}`);
+    await throwForResponse(res);
   }
 
   return (await res.json()) as TRes;
@@ -33,7 +42,7 @@ export async function apiPost<TRes>(
   path: string,
   body: unknown
 ): Promise<TRes> {
-  const token = localStorage.getItem("auth_token");
+  const token = getAuthToken();
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -50,14 +59,7 @@ export async function apiPost<TRes>(
   });
 
   if (!res.ok) {
-    if (res.status === 401) {
-      // Token expired or invalid
-      localStorage.removeItem("auth_token");
-      localStorage.removeItem("auth_user");
-      window.location.href = "/login";
-    }
-    const text = await res.text().catch(() => "");
-    throw new Error(text || `HTTP ${res.status}`);
+    await throwForResponse(res);
   }
 
   return (await res.json()) as TRes;
@@ -72,7 +74,7 @@ export async function getDocuments(): Promise<DocumentListItem[]> {
 }
 
 export async function deleteDocument(documentId: string): Promise<void> {
-  const token = localStorage.getItem("auth_token");
+  const token = getAuthToken();
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -89,13 +91,7 @@ export async function deleteDocument(documentId: string): Promise<void> {
   });
 
   if (!res.ok) {
-    if (res.status === 401) {
-      localStorage.removeItem("auth_token");
-      localStorage.removeItem("auth_user");
-      window.location.href = "/login";
-    }
-    const text = await res.text().catch(() => "");
-    throw new Error(text || `HTTP ${res.status}`);
+    await throwForResponse(res);
   }
 }
 
