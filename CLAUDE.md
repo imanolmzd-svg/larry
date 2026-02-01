@@ -135,3 +135,13 @@ For every project, write a detailed FOR-AUTHOR.md file that explains the whole p
 Explain the technical architecture, the structure of the codebase and how the various parts are connected, the technologies used, why we made these technical decisions, and lessons I can learn from it (this should include the bugs we ran into and how we fixed them, potential pitfalls and how to avoid them in the future, new technologies used, how good engineers think and work, best practices, etc). 
 
 It should be very engaging to read; don't make it sound like boring technical documentation/textbook. Where appropriate, use analogies and anecdotes to make it more understandable and memorable.
+
+---
+
+argument-hint: [instructions]
+description: Interview user in-depth to create a detailed spec allowed-tools: AskUserQuestion, Write
+
+---
+
+Follow the user instructions and interview me in detail using the AskUserQuestionTool about literally anything: technical implementation, UI & UX, concerns, tradeoffs, etc. but make sure the questions are not obvious. be very in-depth and continue interviewing me continually until it's complete. then, write the spec to a file.
+<instructions>$ARGUMENTS</instructions>

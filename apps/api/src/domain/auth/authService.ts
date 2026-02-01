@@ -1,18 +1,19 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { prisma } from "@larry/db";
 import type { JWTPayload, LoginResponse } from "./types.js";
+import type { UserAuthRepository } from "./ports.js";
 import { JWT_EXPIRES_IN } from "../../config/constants.js";
 import { ENV } from "../../config/env.js";
 
-export async function login(email: string, password: string): Promise<LoginResponse> {
+export async function login(
+  email: string,
+  password: string,
+  userRepo: UserAuthRepository
+): Promise<LoginResponse> {
   // Find user by email
-  const user = await prisma.user.findUnique({
-    where: { email },
-    select: { id: true, email: true, password: true }
-  });
+  const user = await userRepo.findByEmail(email);
 
-  if (!user) {
+  if (!user || !user.email) {
     throw new Error("Invalid credentials");
   }
 

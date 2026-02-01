@@ -1,9 +1,7 @@
-import { generateEmbedding } from "../../infra/openai/embeddings.js";
-import { createChatCompletion } from "../../infra/openai/completions.js";
-import { findSimilarChunks } from "../../infra/db/chunkRepository.js";
 import { buildRagPrompt } from "./promptBuilder.js";
 import { mapChunksToSources } from "./sourceMapper.js";
 import type { ChatResponse } from "./types.js";
+import type { ChatCompletionProvider, ChunkRetriever, EmbeddingProvider } from "./ports.js";
 import { MAX_QUESTION_LENGTH, DEFAULT_CHUNK_RETRIEVAL_LIMIT } from "../../config/constants.js";
 
 const NO_ANSWER_RESPONSE = "I couldn't find this information in your documents.";
@@ -32,9 +30,16 @@ function isNoKnowledgeResponse(answer: string): boolean {
   return noKnowledgePhrases.some(phrase => lowerAnswer.includes(phrase));
 }
 
+export type ChatDependencies = {
+  generateEmbedding: EmbeddingProvider;
+  createChatCompletion: ChatCompletionProvider;
+  findSimilarChunks: ChunkRetriever;
+};
+
 export async function askQuestion(
   question: string,
-  userId: string
+  userId: string,
+  deps: ChatDependencies
 ): Promise<ChatResponse> {
   // Validate
   if (!question || question.trim().length === 0) {
@@ -47,12 +52,12 @@ export async function askQuestion(
 
   // 1. Generate embedding
   const startEmbed = Date.now();
-  const embedding = await generateEmbedding(question);
+  const embedding = await deps.generateEmbedding(question);
   const embedTime = Date.now() - startEmbed;
 
   // 2. Retrieve chunks
   const startRetrieval = Date.now();
-  const chunks = await findSimilarChunks(embedding, userId, DEFAULT_CHUNK_RETRIEVAL_LIMIT);
+  const chunks = await deps.findSimilarChunks(embedding, userId, DEFAULT_CHUNK_RETRIEVAL_LIMIT);
   const retrievalTime = Date.now() - startRetrieval;
 
   console.log(`[chat] Retrieved ${chunks.length} chunks in ${retrievalTime}ms (embed: ${embedTime}ms)`);
@@ -70,7 +75,7 @@ export async function askQuestion(
 
   // 5. Call OpenAI
   const startLLM = Date.now();
-  const answer = await createChatCompletion(messages);
+  const answer = await deps.createChatCompletion(messages);
   const llmTime = Date.now() - startLLM;
 
   console.log(`[chat] Generated answer in ${llmTime}ms`);

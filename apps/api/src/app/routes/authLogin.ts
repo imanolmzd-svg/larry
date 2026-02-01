@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import { login } from "../../domain/auth/authService.js";
+import { userAuthRepository } from "../../infra/db/userRepository.js";
 
 export async function postAuthLogin(req: Request, res: Response) {
   const { email, password } = req.body ?? {};
@@ -13,7 +14,7 @@ export async function postAuthLogin(req: Request, res: Response) {
   }
 
   try {
-    const result = await login(email, password);
+    const result = await login(email, password, userAuthRepository);
     res.json(result);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";

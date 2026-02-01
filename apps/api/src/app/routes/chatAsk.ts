@@ -2,6 +2,9 @@ import type { Response } from "express";
 import type { AuthRequest } from "../../infra/middleware/auth.js";
 import { prisma } from "@larry/db";
 import { askQuestion } from "../../domain/chat/chatService.js";
+import { generateEmbedding } from "../../infra/openai/embeddings.js";
+import { createChatCompletion } from "../../infra/openai/completions.js";
+import { findSimilarChunks } from "../../infra/db/chunkRepository.js";
 
 export async function postChatAsk(req: AuthRequest, res: Response) {
   const userId = req.userId!; // Guaranteed by middleware
@@ -29,7 +32,11 @@ export async function postChatAsk(req: AuthRequest, res: Response) {
   }
 
   try {
-    const result = await askQuestion(question, userId);
+    const result = await askQuestion(question, userId, {
+      generateEmbedding,
+      createChatCompletion,
+      findSimilarChunks,
+    });
 
     // Increment questions asked counter
     await prisma.user.update({

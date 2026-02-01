@@ -1,4 +1,4 @@
-import type { RetrievedChunk } from "../../infra/db/chunkRepository.js";
+import type { RetrievedChunk } from "./ports.js";
 import type { ChatSource } from "./types.js";
 
 export function mapChunksToSources(chunks: RetrievedChunk[]): ChatSource[] {

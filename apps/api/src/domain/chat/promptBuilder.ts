@@ -1,4 +1,4 @@
-import type { RetrievedChunk } from "../../infra/db/chunkRepository.js";
+import type { RetrievedChunk } from "./ports.js";
 
 export function buildRagPrompt(
   chunks: RetrievedChunk[],

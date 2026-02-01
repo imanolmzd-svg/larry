@@ -1,13 +1,5 @@
 import { prisma } from "@larry/db";
-
-export type RetrievedChunk = {
-  id: string;
-  documentId: string;
-  documentName: string | null;
-  content: string;
-  pages: number[];
-  similarity: number;
-};
+import type { RetrievedChunk } from "../../domain/chat/ports.js";
 
 export async function findSimilarChunks(
   embedding: number[],
