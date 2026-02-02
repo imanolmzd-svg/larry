@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { login, verifyToken } from "../authService.js";
