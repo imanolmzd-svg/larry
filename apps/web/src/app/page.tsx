@@ -7,7 +7,7 @@ import Image from "next/image";
 import { useAuth } from "@/shared/auth";
 
 type ContentBlockProps = {
-  title: string;
+  title?: string | React.ReactNode;
   subtitle?: string;
   content: string | React.ReactNode;
   videoOnLeft: boolean;
@@ -65,9 +65,12 @@ function ContentBlock({
 
       {/* Content */}
       <div style={{ width: "42%", display: "flex", flexDirection: "column", gap: 16 }} className="content-text">
-        <h2 style={{ fontSize: 32, fontWeight: 700, color: "var(--color-text-primary)", margin: 0 }}>
-          {title}
-        </h2>
+        {typeof title === "string" && title.trim().length > 0 && (
+          <h2 style={{ fontSize: 32, fontWeight: 700, color: "var(--color-text-primary)", margin: 0 }}>
+            {title}
+          </h2>
+        )}
+        {typeof title !== "string" && title}
         {subtitle && (
           <h3
             style={{
@@ -199,77 +202,15 @@ function HomeContent() {
         </section>
 
         {/* Hero Section */}
-        <section
-          style={{
-            display: "flex",
-            flexDirection: "row",
-            gap: "5%",
-            alignItems: "center",
-            marginBottom: 120,
-          }}
-          className="content-block"
-        >
-          <div
-            style={{
-              width: "55%",
-              aspectRatio: "16/9",
-              background: "#e0e0e0",
-              borderRadius: 12,
-              border: "1px solid rgba(0, 0, 0, 0.08)",
-              position: "relative",
-              overflow: "hidden",
-              flexShrink: 0,
-            }}
-            className="video-placeholder"
-          >
-            <Image
-              src="/landing/documents-img.jpg"
-              alt="Documents preview"
-              fill
-              sizes="(max-width: 768px) 100vw, 55vw"
-              style={{ objectFit: "contain" }}
-            />
-          </div>
-
-          <div style={{ width: "42%", display: "flex", flexDirection: "column", gap: 20 }} className="content-text">
-            <h2
-              className="hero-title"
-              style={{
-                fontSize: 32,
-                fontWeight: 700,
-                color: "var(--color-text-primary)",
-                margin: 0,
-                lineHeight: 1.3,
-              }}
-            >
-            </h2>
-            <p style={{ fontSize: 18, lineHeight: 1.6, color: "var(--color-text-secondary)", margin: 0 }}>
-              I search on your documents and respond only when the information is available.
-            </p>
-            <p style={{ fontSize: 18, lineHeight: 1.6, color: "var(--color-text-secondary)", margin: 0 }}>
-              If I can&apos;t find it, I&apos;ll tell you.
-            </p>
-            <Link
-              href={ctaHref}
-              style={{
-                display: "inline-block",
-                padding: "12px 24px",
-                fontSize: 16,
-                fontWeight: 600,
-                background: "#2563eb",
-                color: "white",
-                textDecoration: "none",
-                borderRadius: 8,
-                textAlign: "center",
-                width: "fit-content",
-                cursor: "pointer",
-                marginTop: 8,
-              }}
-            >
-              Upload your files
-            </Link>
-          </div>
-        </section>
+        <ContentBlock
+          videoOnLeft={true}
+          withBackground={false}
+          imageSrc="/landing/documents-img.jpg"
+          imageAlt="Documents preview"
+          cta={{ text: "Upload your files", href: ctaHref }}
+          subtitle="I search on your documents and respond only when the information is available."
+          content="If I can&apos;t find it, I&apos;ll tell you."
+        />
 
         {/* Why Larry Section */}
         <ContentBlock
@@ -312,11 +253,11 @@ function HomeContent() {
         <ContentBlock
           title="Guaranteed confidence"
           subtitle="No guessing. No made-up answers."
+          content="If it's not in your documents, I won't pretend it is."
           videoOnLeft={false}
           withBackground={true}
           imageSrc="/landing/img-question-3.jpg"
           imageAlt="Guaranteed confidence"
-          content="If it's not in your documents, I won't pretend it is."
         />
 
         {/* Closing Section */}
