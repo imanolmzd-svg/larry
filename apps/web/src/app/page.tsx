@@ -13,9 +13,20 @@ type ContentBlockProps = {
   videoOnLeft: boolean;
   cta?: { text: string; href: string };
   withBackground?: boolean;
+  imageSrc: string;
+  imageAlt: string;
 };
 
-function ContentBlock({ title, subtitle, content, videoOnLeft, cta, withBackground }: ContentBlockProps) {
+function ContentBlock({
+  title,
+  subtitle,
+  content,
+  videoOnLeft,
+  cta,
+  withBackground,
+  imageSrc,
+  imageAlt,
+}: ContentBlockProps) {
   return (
     <section
       style={{
@@ -29,27 +40,31 @@ function ContentBlock({ title, subtitle, content, videoOnLeft, cta, withBackgrou
       }}
       className="content-block"
     >
-      {/* Video Placeholder */}
+      {/* Image */}
       <div
         style={{
-          width: "40%",
+          width: "55%",
           aspectRatio: "16/9",
           background: "#e0e0e0",
           borderRadius: 12,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          color: "#999",
-          fontSize: 14,
+          border: "1px solid rgba(0, 0, 0, 0.08)",
+          position: "relative",
+          overflow: "hidden",
           flexShrink: 0,
         }}
         className="video-placeholder"
       >
-        Video placeholder
+        <Image
+          src={imageSrc}
+          alt={imageAlt}
+          fill
+          sizes="(max-width: 768px) 100vw, 55vw"
+          style={{ objectFit: "contain" }}
+        />
       </div>
 
       {/* Content */}
-      <div style={{ width: "55%", display: "flex", flexDirection: "column", gap: 16 }} className="content-text">
+      <div style={{ width: "42%", display: "flex", flexDirection: "column", gap: 16 }} className="content-text">
         <h2 style={{ fontSize: 32, fontWeight: 700, color: "var(--color-text-primary)", margin: 0 }}>
           {title}
         </h2>
@@ -196,23 +211,27 @@ function HomeContent() {
         >
           <div
             style={{
-              width: "40%",
+              width: "55%",
               aspectRatio: "16/9",
               background: "#e0e0e0",
               borderRadius: 12,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "#999",
-              fontSize: 14,
+              border: "1px solid rgba(0, 0, 0, 0.08)",
+              position: "relative",
+              overflow: "hidden",
               flexShrink: 0,
             }}
             className="video-placeholder"
           >
-            Video placeholder
+            <Image
+              src="/landing/documents-img.jpg"
+              alt="Documents preview"
+              fill
+              sizes="(max-width: 768px) 100vw, 55vw"
+              style={{ objectFit: "contain" }}
+            />
           </div>
 
-          <div style={{ width: "55%", display: "flex", flexDirection: "column", gap: 20 }} className="content-text">
+          <div style={{ width: "42%", display: "flex", flexDirection: "column", gap: 20 }} className="content-text">
             <h2
               className="hero-title"
               style={{
@@ -257,6 +276,8 @@ function HomeContent() {
           title="Why me"
           videoOnLeft={false}
           withBackground={true}
+          imageSrc="/landing/img-question-1.jpg"
+          imageAlt="Searching for a detail in documents"
           content={
             <>
               <p style={{ margin: "0 0 12px 0" }}>Searching for a single detail in a PDF is slow.</p>
@@ -271,6 +292,8 @@ function HomeContent() {
           title="How it works"
           videoOnLeft={true}
           withBackground={false}
+          imageSrc="/landing/img-question-2.jpg"
+          imageAlt="How the process works"
           content={
             <>
               <ol style={{ margin: 0, paddingLeft: 24 }}>
@@ -291,6 +314,8 @@ function HomeContent() {
           subtitle="No guessing. No made-up answers."
           videoOnLeft={false}
           withBackground={true}
+          imageSrc="/landing/img-question-3.jpg"
+          imageAlt="Guaranteed confidence"
           content="If it's not in your documents, I won't pretend it is."
         />
 
@@ -301,6 +326,8 @@ function HomeContent() {
           videoOnLeft={true}
           withBackground={false}
           cta={{ text: "Start now", href: ctaHref }}
+          imageSrc="/landing/img-question-4.jpg"
+          imageAlt="Find answers in your files"
           content=""
         />
       </main>
