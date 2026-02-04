@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { useAuth } from "@/shared/auth";
+import styles from "./page.module.css";
 
 type ContentBlockProps = {
   title?: string | React.ReactNode;
@@ -28,86 +29,96 @@ function ContentBlock({
   imageAlt,
 }: ContentBlockProps) {
   return (
-    <section
-      style={{
-        display: "flex",
-        flexDirection: videoOnLeft ? "row" : "row-reverse",
-        gap: "5%",
-        alignItems: "center",
-        padding: withBackground ? "80px 60px" : "0",
-        margin: withBackground ? "0 -60px 120px -60px" : "0 0 120px 0",
-        background: withBackground ? "var(--card-bg)" : "transparent",
-      }}
-      className="content-block"
-    >
-      {/* Image */}
-      <div
+    <div style={{
+      width: "100%",
+      background: withBackground ? "var(--card-bg)" : "transparent",
+      display: "flex",
+      justifyContent: "center", alignItems: "center",
+      padding: "80px 60px",
+    }}>
+      <section
         style={{
-          width: "55%",
-          aspectRatio: "16/9",
-          background: "#e0e0e0",
-          borderRadius: 12,
-          border: "1px solid rgba(0, 0, 0, 0.08)",
-          position: "relative",
-          overflow: "hidden",
-          flexShrink: 0,
+          display: "flex",
+          maxWidth: 1200,
+          width: "100%",
+          flexDirection: videoOnLeft ? "row" : "row-reverse",
+          gap: "5%",
+          alignItems: "center",
         }}
-        className="video-placeholder"
+        className={styles.contentBlock}
       >
-        <Image
-          src={imageSrc}
-          alt={imageAlt}
-          fill
-          sizes="(max-width: 768px) 100vw, 55vw"
-          style={{ objectFit: "contain" }}
-        />
-      </div>
-
-      {/* Content */}
-      <div style={{ width: "42%", display: "flex", flexDirection: "column", gap: 16 }} className="content-text">
-        {typeof title === "string" && title.trim().length > 0 && (
-          <h2 style={{ fontSize: 32, fontWeight: 700, color: "var(--color-text-primary)", margin: 0 }}>
-            {title}
-          </h2>
-        )}
-        {typeof title !== "string" && title}
-        {subtitle && (
-          <h3
-            style={{
-              fontSize: 20,
-              fontWeight: 600,
-              color: "var(--color-text-primary)",
-              margin: 0,
-            }}
-          >
-            {subtitle}
-          </h3>
-        )}
-        <div style={{ fontSize: 16, lineHeight: 1.6, color: "var(--color-text-secondary)" }}>
-          {content}
+        {/* Image */}
+        <div
+          style={{
+            width: "55%",
+            aspectRatio: "16/9",
+            background: "#e0e0e0",
+            borderRadius: 12,
+            border: "1px solid rgba(0, 0, 0, 0.08)",
+            position: "relative",
+            overflow: "hidden",
+            flexShrink: 0,
+          }}
+          className={styles.videoPlaceholder}
+        >
+          <Image
+            src={imageSrc}
+            alt={imageAlt}
+            fill
+            sizes="(max-width: 768px) 100vw, 55vw"
+            style={{ objectFit: "contain" }}
+          />
         </div>
-        {cta && (
-          <Link
-            href={cta.href}
-            style={{
-              display: "inline-block",
-              padding: "12px 24px",
-              fontSize: 16,
-              fontWeight: 600,
-              background: "#2563eb",
-              color: "white",
-              textDecoration: "none",
-              borderRadius: 8,
-              textAlign: "center",
-              width: "fit-content",
-              cursor: "pointer",
-            }}
-          >
-            {cta.text}
-          </Link>
-        )}
-      </div>
-    </section>
+
+        {/* Content */}
+        <div
+          style={{ width: "42%", display: "flex", flexDirection: "column", gap: 16 }}
+          className={styles.contentText}
+        >
+          {typeof title === "string" && title.trim().length > 0 && (
+            <h2 style={{ fontSize: 32, fontWeight: 700, color: "var(--color-text-primary)", margin: 0 }}>
+              {title}
+            </h2>
+          )}
+          {typeof title !== "string" && title}
+          {subtitle && (
+            <h3
+              style={{
+                fontSize: 20,
+                fontWeight: 600,
+                color: "var(--color-text-primary)",
+                margin: 0,
+              }}
+            >
+              {subtitle}
+            </h3>
+          )}
+          <div style={{ fontSize: 16, lineHeight: 1.6, color: "var(--color-text-secondary)" }}>
+            {content}
+          </div>
+          {cta && (
+            <Link
+              href={cta.href}
+              style={{
+                display: "inline-block",
+                padding: "12px 24px",
+                fontSize: 16,
+                fontWeight: 600,
+                background: "#2563eb",
+                color: "white",
+                textDecoration: "none",
+                borderRadius: 8,
+                textAlign: "center",
+                width: "fit-content",
+                cursor: "pointer",
+              }}
+            >
+              {cta.text}
+            </Link>
+          )}
+        </div>
+      </section>
+    </div>
   );
 }
 
@@ -131,37 +142,25 @@ function HomeContent() {
 
   return (
     <>
-      <style jsx>{`
-        @media (max-width: 768px) {
-          .content-block {
-            flex-direction: column !important;
-            gap: 24px !important;
-          }
-          .video-placeholder {
-            width: 100% !important;
-          }
-          .content-text {
-            width: 100% !important;
-          }
-          .hero-title {
-            font-size: 32px !important;
-          }
-        }
-      `}</style>
-
-      <main style={{ maxWidth: 1200, margin: "0 auto", padding: "80px 60px" }}>
+      <main style={{
+            marginBottom: 180,
+          }}>
         {/* Introduction Section with Larry */}
         <section
           style={{
+            maxWidth: 1200, margin: "0 auto", padding: "80px 60px",
             display: "flex",
             flexDirection: "row",
             gap: "5%",
             alignItems: "center",
             marginBottom: 120,
           }}
-          className="content-block"
+          className={styles.contentBlock}
         >
-          <div style={{ width: "55%", display: "flex", flexDirection: "column", gap: 16 }} className="content-text">
+          <div
+            style={{ width: "55%", display: "flex", flexDirection: "column", gap: 16 }}
+            className={styles.contentText}
+          >
             <h1
               style={{
                 fontSize: 48,
@@ -186,6 +185,7 @@ function HomeContent() {
               justifyContent: "center",
               flexShrink: 0,
             }}
+            className={styles.videoPlaceholder}
           >
             <Image
               src="/larry-searching-2.png"
